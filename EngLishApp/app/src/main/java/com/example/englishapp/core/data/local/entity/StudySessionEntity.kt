@@ -5,7 +5,15 @@ import androidx.room.PrimaryKey
 
 // Lưu tạm local sau mỗi phiên học
 // Sync lên Firestore khi có mạng → xoá local
-@Entity(tableName = "study_sessions")
+@Entity(
+    tableName = "study_sessions",
+    indices = [
+        androidx.room.Index(value = ["userId"]),
+        androidx.room.Index(value = ["setId"]),
+        androidx.room.Index(value = ["date"]),
+        androidx.room.Index(value = ["isSynced"])
+    ]
+)
 data class StudySessionEntity(
 
     // PK - do hệ thống tạo (UUID)

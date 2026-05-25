@@ -6,10 +6,8 @@ import com.example.englishapp.features.auth.domain.repository.IAuthRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class LoginUseCase @Inject constructor(
+class GetUserDataUseCase @Inject constructor(
     private val repository: IAuthRepository
 ) {
-    operator fun invoke(email: String, password: String): Flow<AuthResult<User>> {
-        return repository.login(email, password)
-    }
+    operator fun invoke(uid: String): Flow<AuthResult<User>> = repository.getUserData(uid)
 }

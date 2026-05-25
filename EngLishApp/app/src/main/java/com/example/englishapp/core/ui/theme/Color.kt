@@ -36,7 +36,7 @@ val OnErrorContainerLight = Color(0xFF93000A)
 // =============================================================================
 // DARK MODE COLORS
 // =============================================================================
-val PrimaryDark = Color(0xFF0031CA)
+val PrimaryDark = Color(0xFF3D5AFE)
 val OnPrimaryDark = Color(0xFFFFFFFF)
 val PrimaryContainerDark = Color(0xFF1A2E8F)
 val OnPrimaryContainerDark = Color(0xFFBBC3FF)
@@ -51,11 +51,11 @@ val OnTertiaryDark = Color(0xFF03006D)
 val TertiaryContainerDark = Color(0xFF3135AC)
 val OnTertiaryContainerDark = Color(0xFFE1E0FF)
 
-val BackgroundDark = Color(0xFF0F1130) // Nền Navy theo mô tả text
+val BackgroundDark = Color(0xFF0F1130) // Nền Navy đậm
 val OnBackgroundDark = Color(0xFFF1EFFF)
-val SurfaceDark = Color(0xFF0031CA)    // Sửa lại đúng surface-dark từ DESIGN.md
+val SurfaceDark = Color(0xFF1A1D3B)
 val OnSurfaceDark = Color(0xFFF1EFFF)
-val SurfaceVariantDark = Color(0xFFE0E0FF) // Trả lại đúng surface-variant gốc
+val SurfaceVariantDark = Color(0xFF262A4D)
 val OnSurfaceVariantDark = Color(0xFFC5C5D9)
 
 val OutlineDark = Color(0xFF8F90A4)

@@ -1,4 +1,4 @@
-package com.example.englishapp.features.splash
+package com.example.englishapp.features.splash.presentation.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
@@ -37,12 +36,12 @@ fun SplashScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Khối chứa Icon
+        // Khối chứa Icon
             Box(
                 modifier = Modifier
                     .size(96.dp)
                     .background(
-                        color = Color.White.copy(alpha = 0.15f),
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.15f),
                         shape = RoundedCornerShape(32.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -51,7 +50,7 @@ fun SplashScreen(
                     imageVector = Icons.AutoMirrored.Outlined.MenuBook,
                     contentDescription = null,
                     modifier = Modifier.size(48.dp),
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
                 Icon(
                     imageVector = Icons.Filled.Lightbulb,
@@ -60,7 +59,7 @@ fun SplashScreen(
                         .size(20.dp)
                         .align(Alignment.TopEnd)
                         .padding(top = 12.dp, end = 12.dp),
-                    tint = Color.White.copy(alpha = 0.8f)
+                    tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                 )
             }
 
@@ -69,7 +68,7 @@ fun SplashScreen(
             Text(
                 text = "MinLish",
                 style = MaterialTheme.typography.displayLarge,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onPrimary
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -77,7 +76,7 @@ fun SplashScreen(
             Text(
                 text = "HỌC TỪ VỰNG THÔNG MINH",
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
             )
         }
     }

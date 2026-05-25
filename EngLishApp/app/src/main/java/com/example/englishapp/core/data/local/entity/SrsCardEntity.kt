@@ -5,7 +5,15 @@ import androidx.room.PrimaryKey
 
 // Source of truth cho SRS — lưu local là chính
 // Sync lên Firestore sau mỗi phiên học
-@Entity(tableName = "srs_cards")
+@Entity(
+    tableName = "srs_cards",
+    indices = [
+        androidx.room.Index(value = ["userId"]),
+        androidx.room.Index(value = ["wordId"]),
+        androidx.room.Index(value = ["setId"]),
+        androidx.room.Index(value = ["nextReview"])
+    ]
+)
 data class SrsCardEntity(
 
     // PK - giống cardId trên Firestore

@@ -1,4 +1,4 @@
-package com.example.englishapp.features.onboarding
+package com.example.englishapp.features.onboarding.presentation.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -57,7 +56,7 @@ fun OnboardingScreen(
             Text(
                 text = "Bỏ qua",
                 style = MaterialTheme.typography.bodyLarge,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 16.dp)
@@ -98,7 +97,7 @@ fun OnboardingScreen(
                 Text(
                     text = descriptions[page],
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
@@ -126,7 +125,7 @@ fun OnboardingScreen(
                             .padding(horizontal = 4.dp)
                             .size(width = if (isSelected) 24.dp else 8.dp, height = 8.dp) // Chỉ chỉ số trang hiện tại dài ra
                             .background(
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.LightGray, // Đổi màu xanh hoặc xám
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, // Đổi màu xanh hoặc outline
                                 shape = CircleShape
                             )
                     )
@@ -156,7 +155,7 @@ fun OnboardingScreen(
                 Text(
                     text = if (pagerState.currentPage == 2) "Bắt đầu ngay" else "Tiếp theo",
                     style = MaterialTheme.typography.labelLarge,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
         }

@@ -5,7 +5,13 @@ import androidx.room.PrimaryKey
 
 // Cache từ Firestore xuống local
 // Sync theo setId khi mở VocabListFragment
-@Entity(tableName = "words")
+@Entity(
+    tableName = "words",
+    indices = [
+        androidx.room.Index(value = ["setId"]),
+        androidx.room.Index(value = ["userId"])
+    ]
+)
 data class WordEntity(
 
     // PK - giống wordId trên Firestore

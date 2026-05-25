@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -70,13 +71,15 @@ dependencies {
 
     // Hilt
     implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
 
-    // Firebase BOM — dùng BOM thì không cần version cho từng lib
+    // Firebase — dùng BOM thì không cần version cho từng lib
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.analytics)
 
     // DataStore
     implementation(libs.datastore.preferences)
@@ -85,4 +88,6 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
+
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
 }
