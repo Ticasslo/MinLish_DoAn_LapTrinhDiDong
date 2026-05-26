@@ -77,5 +77,6 @@ data class StudySessionEntity(
 
     // Flag sync — true = đã sync lên Firestore → có thể xoá local
     // KHÔNG được null, default false
-    val isSynced: Boolean = false
+    val isSynced: Boolean = false,
+    val updatedAt: Long = System.currentTimeMillis()
 )

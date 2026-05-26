@@ -69,5 +69,9 @@ data class WordEntity(
 
     // Hệ thống tự tạo
     // KHÔNG được null
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis(),
+
+    // Flag sync — true = đã sync lên Firestore
+    val isSynced: Boolean = false
 )

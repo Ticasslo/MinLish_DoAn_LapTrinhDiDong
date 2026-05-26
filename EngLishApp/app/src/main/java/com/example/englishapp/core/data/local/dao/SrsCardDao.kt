@@ -57,7 +57,9 @@ interface SrsCardDao {
     @Query("DELETE FROM srs_cards WHERE wordId = :wordId")
     suspend fun deleteCardByWordId(wordId: String)
 
-    // Xoá tất cả card trong 1 set (khi xoá bộ từ)
-    @Query("DELETE FROM srs_cards WHERE setId = :setId")
-    suspend fun deleteCardsBySetId(setId: String)
+    @Query("SELECT * FROM srs_cards WHERE isSynced = 0 AND userId = :userId")
+    suspend fun getUnsyncedCards(userId: String): List<SrsCardEntity>
+
+    @Query("UPDATE srs_cards SET isSynced = 1, updatedAt = :updatedAt WHERE cardId = :cardId")
+    suspend fun markAsSynced(cardId: String, updatedAt: Long = System.currentTimeMillis())
 }

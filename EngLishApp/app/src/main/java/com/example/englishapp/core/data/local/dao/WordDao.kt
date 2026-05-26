@@ -31,9 +31,11 @@ interface WordDao {
     @Query("DELETE FROM words WHERE setId = :setId")
     suspend fun deleteWordsBySetId(setId: String)
 
-    // Đếm số từ trong 1 bộ từ
-    @Query("SELECT COUNT(*) FROM words WHERE setId = :setId")
-    suspend fun countWordsBySetId(setId: String): Int
+    @Query("SELECT * FROM words WHERE isSynced = 0 AND userId = :userId")
+    suspend fun getUnsyncedWords(userId: String): List<WordEntity>
+
+    @Query("UPDATE words SET isSynced = 1, updatedAt = :updatedAt WHERE wordId = :wordId")
+    suspend fun markAsSynced(wordId: String, updatedAt: Long = System.currentTimeMillis())
 
     // Tìm kiếm từ theo keyword
     @Query("SELECT * FROM words WHERE setId = :setId AND (word LIKE '%' || :keyword || '%' OR meaning LIKE '%' || :keyword || '%')")

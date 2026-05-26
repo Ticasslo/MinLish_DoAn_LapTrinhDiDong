@@ -6,6 +6,8 @@ import com.example.englishapp.core.data.local.AppDatabase
 import com.example.englishapp.core.data.local.dao.SrsCardDao
 import com.example.englishapp.core.data.local.dao.StudySessionDao
 import com.example.englishapp.core.data.local.dao.WordDao
+import com.example.englishapp.core.data.local.dao.VocabularySetDao
+import com.example.englishapp.core.data.local.dao.StreakDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -35,4 +37,10 @@ object DatabaseModule {
 
     @Provides
     fun provideStudySessionDao(db: AppDatabase): StudySessionDao = db.studySessionDao()
+
+    @Provides
+    fun provideVocabularySetDao(db: AppDatabase): VocabularySetDao = db.vocabularySetDao()
+
+    @Provides
+    fun provideStreakDao(db: AppDatabase): StreakDao = db.streakDao()
 }

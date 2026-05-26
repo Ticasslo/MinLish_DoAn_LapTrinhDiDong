@@ -68,5 +68,10 @@ data class SrsCardEntity(
     // Null nếu chưa review lần nào
     // Chỉ được 1 trong: "again", "hard", "good", "easy"
     // Ví dụ: "good"
-    val lastRating: String? = null
+    val lastRating: String? = null,
+
+    val updatedAt: Long = System.currentTimeMillis(),
+
+    // Flag sync — true = đã sync lên Firestore
+    val isSynced: Boolean = false
 )
