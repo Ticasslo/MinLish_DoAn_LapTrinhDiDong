@@ -31,4 +31,7 @@ interface IAuthRepository {
 
     // Đăng nhập bằng Google
     suspend fun signInWithGoogle(idToken: String): AuthResult<User>
+
+    // Đổi mật khẩu
+    fun changePassword(currentPassword: String, newPassword: String): Flow<AuthResult<Unit>>
 }
