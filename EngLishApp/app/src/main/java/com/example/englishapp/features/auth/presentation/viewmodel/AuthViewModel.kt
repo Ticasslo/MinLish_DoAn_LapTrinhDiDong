@@ -38,15 +38,26 @@ class AuthViewModel @Inject constructor(
     }
 
     private fun checkCurrentUser() {
-        val firebaseUser = getCurrentUserUseCase()
-        if (firebaseUser != null) {
-            viewModelScope.launch {
-                getUserDataUseCase(firebaseUser.userId).collect { result ->
-                    _uiState.update { it.copy(authResult = result) }
+        viewModelScope.launch {
+            // Theo dõi sự thay đổi của User từ Database (Reactive)
+            getCurrentUserUseCase.observe().collect { user ->
+                if (user != null) {
+                    _uiState.update { it.copy(authResult = AuthResult.Success(user)) }
+                } else {
+                    // Nếu local chưa có, kiểm tra Firebase Auth
+                    val firebaseUser = getCurrentUserUseCase()
+                    if (firebaseUser != null) {
+                        // Lấy dữ liệu từ Firestore về Local
+                        getUserDataUseCase(firebaseUser.userId).collect { result ->
+                            if (result is AuthResult.Success) {
+                                _uiState.update { it.copy(authResult = result) }
+                            }
+                        }
+                    } else {
+                        _uiState.update { it.copy(authResult = null) }
+                    }
                 }
             }
-        } else {
-            _uiState.update { it.copy(authResult = null) }
         }
     }
 
@@ -90,14 +101,6 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             updateProfileUseCase(goal, level).collect { result ->
                 _uiState.update { it.copy(updateProfileResult = result) }
-                if (result is AuthResult.Success) {
-                    val firebaseUser = getCurrentUserUseCase()
-                    if (firebaseUser != null) {
-                        getUserDataUseCase(firebaseUser.userId).collect { userResult ->
-                            _uiState.update { it.copy(authResult = userResult) }
-                        }
-                    }
-                }
             }
         }
     }

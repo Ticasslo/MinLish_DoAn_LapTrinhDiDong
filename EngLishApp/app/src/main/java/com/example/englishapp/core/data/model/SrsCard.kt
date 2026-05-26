@@ -60,4 +60,6 @@ data class SrsCard(
     // Chỉ được 1 trong: "again", "hard", "good", "easy"
     // Ví dụ: "good"
     val lastRating: String? = null,
+
+    val updatedAt: Long = System.currentTimeMillis()
 )

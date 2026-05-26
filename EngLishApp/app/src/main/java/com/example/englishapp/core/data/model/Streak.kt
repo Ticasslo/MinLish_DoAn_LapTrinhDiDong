@@ -30,5 +30,7 @@ data class Streak(
     // Hệ thống tự thêm timestamp mỗi ngày học
     // Có thể rỗng nếu chưa học lần nào
     // Ví dụ: [1716739200000, 1716825600000, 1716912000000]
-    val streakHistory: List<Long> = emptyList()
+    val streakHistory: List<Long> = emptyList(),
+
+    val updatedAt: Long = System.currentTimeMillis()
 )

@@ -15,6 +15,9 @@ interface IAuthRepository {
     suspend fun logout()
 
     // Lấy thông tin User hiện tại (nếu đã đăng nhập)
+    fun observeCurrentUser(): Flow<User?>
+
+    // Lấy thông tin User hiện tại (non-reactive)
     fun getCurrentUser(): User?
 
     // Quên mật khẩu

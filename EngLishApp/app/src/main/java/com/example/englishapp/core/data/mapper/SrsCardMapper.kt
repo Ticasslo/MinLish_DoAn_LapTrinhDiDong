@@ -15,7 +15,8 @@ fun SrsCardEntity.toDomain(): SrsCard {
         repetitions = this.repetitions,
         nextReview = this.nextReview,
         lastReview = this.lastReview,
-        lastRating = this.lastRating
+        lastRating = this.lastRating,
+        updatedAt = this.updatedAt
     )
 }
 
@@ -31,6 +32,8 @@ fun SrsCard.toEntity(): SrsCardEntity {
         repetitions = this.repetitions,
         nextReview = this.nextReview,
         lastReview = this.lastReview,
-        lastRating = this.lastRating
+        lastRating = this.lastRating,
+        updatedAt = this.updatedAt,
+        isSynced = false
     )
 }

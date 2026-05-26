@@ -15,7 +15,8 @@ interface VocabularySetDao {
     @Query("""
         UPDATE vocabulary_sets 
         SET wordCount = :wordCount, masteredCount = :masteredCount, 
-            learningCount = :learningCount, newCount = :newCount, updatedAt = :updatedAt 
+            learningCount = :learningCount, newCount = :newCount, 
+            updatedAt = :updatedAt, isSynced = 0
         WHERE setId = :setId
     """)
     suspend fun updateCounts(setId: String, wordCount: Int, masteredCount: Int, learningCount: Int, newCount: Int, updatedAt: Long = System.currentTimeMillis())

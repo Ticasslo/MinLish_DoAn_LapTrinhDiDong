@@ -16,7 +16,8 @@ fun WordEntity.toDomain(): Word {
         collocation = this.collocation,
         relatedWords = this.relatedWords,
         note = this.note,
-        createdAt = this.createdAt
+        createdAt = this.createdAt,
+        updatedAt = this.updatedAt
     )
 }
 
@@ -34,7 +35,7 @@ fun Word.toEntity(): WordEntity {
         relatedWords = this.relatedWords,
         note = this.note,
         createdAt = this.createdAt,
-        updatedAt = System.currentTimeMillis(),
+        updatedAt = this.updatedAt,
         isSynced = false
     )
 }

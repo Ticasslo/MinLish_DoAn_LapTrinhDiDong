@@ -3,11 +3,7 @@ package com.example.englishapp.core.di
 import android.content.Context
 import androidx.room.Room
 import com.example.englishapp.core.data.local.AppDatabase
-import com.example.englishapp.core.data.local.dao.SrsCardDao
-import com.example.englishapp.core.data.local.dao.StudySessionDao
-import com.example.englishapp.core.data.local.dao.WordDao
-import com.example.englishapp.core.data.local.dao.VocabularySetDao
-import com.example.englishapp.core.data.local.dao.StreakDao
+import com.example.englishapp.core.data.local.dao.*
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -33,6 +29,9 @@ object DatabaseModule {
     fun provideWordDao(db: AppDatabase): WordDao = db.wordDao()
 
     @Provides
+    fun provideUserDao(db: AppDatabase): UserDao = db.userDao()
+
+    @Provides
     fun provideSrsCardDao(db: AppDatabase): SrsCardDao = db.srsCardDao()
 
     @Provides
@@ -43,4 +42,7 @@ object DatabaseModule {
 
     @Provides
     fun provideStreakDao(db: AppDatabase): StreakDao = db.streakDao()
+
+    @Provides
+    fun provideNotificationDao(db: AppDatabase): NotificationDao = db.notificationDao()
 }

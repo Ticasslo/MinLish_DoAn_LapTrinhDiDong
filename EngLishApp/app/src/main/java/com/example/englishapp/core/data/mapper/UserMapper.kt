@@ -9,8 +9,9 @@ fun FirebaseUser.toDomain(): User {
         userId = this.uid,
         name = this.displayName ?: "",
         email = this.email ?: "",
-        avatar = this.photoUrl?.toString()
-        // Các field profile khác sẽ lấy giá trị default từ User model nếu không có trong FirebaseUser
+        avatar = this.photoUrl?.toString(),
+        createdAt = this.metadata?.creationTimestamp ?: System.currentTimeMillis(),
+        updatedAt = System.currentTimeMillis()
     )
 }
 
@@ -26,7 +27,8 @@ fun UserEntity.toDomain(): User {
         dailyGoal = this.dailyGoal,
         reminderTime = this.reminderTime,
         pushEnabled = this.pushEnabled,
-        createdAt = this.createdAt
+        createdAt = this.createdAt,
+        updatedAt = this.updatedAt
     )
 }
 
@@ -43,7 +45,7 @@ fun User.toEntity(): UserEntity {
         reminderTime = this.reminderTime,
         pushEnabled = this.pushEnabled,
         createdAt = this.createdAt,
-        updatedAt = System.currentTimeMillis(),
-        isSynced = false // Khi tạo mới từ Model, mặc định là chưa sync
+        updatedAt = this.updatedAt,
+        isSynced = false
     )
 }

@@ -61,5 +61,7 @@ data class StudySession(
     // Hệ thống tự đếm số lần người dùng bấm "Easy"
     // KHÔNG được null, >= 0
     // Ví dụ: 4
-    val easyCount: Int = 0
+    val easyCount: Int = 0,
+
+    val updatedAt: Long = System.currentTimeMillis()
 )

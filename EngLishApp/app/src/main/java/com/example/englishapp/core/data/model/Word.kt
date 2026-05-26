@@ -59,5 +59,6 @@ data class Word(
     // Hệ thống tự tạo
     // KHÔNG được null
     // Ví dụ: 1716825600000
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis()
 )

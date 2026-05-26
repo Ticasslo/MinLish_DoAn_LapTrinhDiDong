@@ -16,7 +16,8 @@ fun StudySessionEntity.toDomain(): StudySession {
         againCount = this.againCount,
         hardCount = this.hardCount,
         goodCount = this.goodCount,
-        easyCount = this.easyCount
+        easyCount = this.easyCount,
+        updatedAt = this.updatedAt
     )
 }
 
@@ -35,6 +36,6 @@ fun StudySession.toEntity(): StudySessionEntity {
         goodCount = this.goodCount,
         easyCount = this.easyCount,
         isSynced = false,
-        updatedAt = System.currentTimeMillis()
+        updatedAt = this.updatedAt
     )
 }

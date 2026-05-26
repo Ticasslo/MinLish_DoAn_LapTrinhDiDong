@@ -16,7 +16,15 @@ interface UserDao {
     @Query("UPDATE users SET isSynced = 1, updatedAt = :updatedAt WHERE userId = :userId")
     suspend fun markUserAsSynced(userId: String, updatedAt: Long = System.currentTimeMillis())
 
-    // Nếu có một user nào đó cần được lấy từ local để hiển thị (ví dụ, user đang đăng nhập)
+    // Lấy user chưa được đồng bộ (phục vụ SyncWorker)
+    @Query("SELECT * FROM users WHERE isSynced = 0 LIMIT 1")
+    suspend fun getUnsyncedUser(): UserEntity?
+
+    // Theo dõi người dùng theo ID (Dùng cho AuthRepository)
+    @Query("SELECT * FROM users WHERE userId = :userId")
+    fun observeUserById(userId: String): Flow<UserEntity?>
+
+    // Lấy user hiện tại (thường chỉ có 1 bản ghi trong app offline-first)
     @Query("SELECT * FROM users LIMIT 1")
     suspend fun getCurrentUser(): UserEntity?
 

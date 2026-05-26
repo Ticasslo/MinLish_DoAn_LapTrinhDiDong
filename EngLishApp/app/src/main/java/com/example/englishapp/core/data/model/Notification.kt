@@ -36,5 +36,6 @@ data class Notification(
     // Hệ thống tự tạo khi push notification
     // KHÔNG được null
     // Ví dụ: 1716825600000
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis()
 )

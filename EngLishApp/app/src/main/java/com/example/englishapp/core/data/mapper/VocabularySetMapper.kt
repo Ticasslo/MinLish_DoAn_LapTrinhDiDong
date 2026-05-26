@@ -8,12 +8,14 @@ fun VocabularySetEntity.toDomain(): VocabularySet {
         setId = this.setId,
         userId = this.userId,
         name = this.name,
-        description = this.description ?: "",
-        tags = this.tags.split(","),
+        description = this.description,
+        // Xử lý chuỗi tags, tránh tạo ra list có 1 phần tử rỗng nếu chuỗi tags trống
+        tags = if (this.tags.isEmpty()) emptyList() else this.tags.split(","),
         wordCount = this.wordCount,
         masteredCount = this.masteredCount,
         learningCount = this.learningCount,
         newCount = this.newCount,
+        createdAt = this.createdAt,
         updatedAt = this.updatedAt
     )
 }
@@ -29,6 +31,7 @@ fun VocabularySet.toEntity(): VocabularySetEntity {
         masteredCount = this.masteredCount,
         learningCount = this.learningCount,
         newCount = this.newCount,
+        createdAt = this.createdAt,
         updatedAt = this.updatedAt,
         isSynced = false
     )

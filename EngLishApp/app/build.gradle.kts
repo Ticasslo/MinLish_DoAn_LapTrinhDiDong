@@ -89,5 +89,10 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
 
+    // WorkManager
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.hilt.worker)
+    ksp(libs.hilt.worker.compiler)
+
     implementation("com.google.android.gms:play-services-auth:21.3.0")
 }
