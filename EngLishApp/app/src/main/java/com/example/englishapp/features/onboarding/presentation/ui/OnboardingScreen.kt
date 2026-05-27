@@ -149,13 +149,13 @@ fun OnboardingScreen(
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp), // Bo góc chuẩn 12px theo tài liệu DESIGN.md
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer // Màu xanh đặc trưng thương hiệu
+                    containerColor = MaterialTheme.colorScheme.primary // Màu xanh đặc trưng thương hiệu
                 )
             ) {
                 Text(
                     text = if (pagerState.currentPage == 2) "Bắt đầu ngay" else "Tiếp theo",
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }

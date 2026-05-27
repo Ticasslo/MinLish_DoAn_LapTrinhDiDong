@@ -11,6 +11,7 @@ import com.example.englishapp.core.data.sync.SyncWorker
 import com.example.englishapp.core.util.NetworkUtil
 import com.example.englishapp.features.auth.domain.model.AuthResult
 import com.example.englishapp.features.auth.domain.repository.IAuthRepository
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.GoogleAuthProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -203,6 +204,34 @@ class AuthRepository @Inject constructor(
             }
         } catch (e: Exception) {
             AuthResult.Error("Lỗi xác thực Google hoặc tài khoản không hợp lệ")
+        }
+    }
+
+    override fun changePassword(currentPassword: String, newPassword: String): Flow<AuthResult<Unit>> = flow {
+        if (!networkUtil.isOnline()) {
+            emit(AuthResult.Error("Không có kết nối internet"))
+            return@flow
+        }
+        emit(AuthResult.Loading)
+        try {
+            val user = firebaseService.auth.currentUser
+            if (user != null && user.email != null) {
+                val credential = EmailAuthProvider.getCredential(user.email!!, currentPassword)
+                
+                // 1. Re-authenticate
+                user.reauthenticate(credential).await()
+                
+                // 2. Update password
+                user.updatePassword(newPassword).await()
+                
+                emit(AuthResult.Success(Unit))
+            } else {
+                emit(AuthResult.Error("Người dùng chưa đăng nhập hoặc không hợp lệ"))
+            }
+        } catch (e: com.google.firebase.auth.FirebaseAuthInvalidCredentialsException) {
+            emit(AuthResult.Error("Mật khẩu hiện tại không chính xác"))
+        } catch (e: Exception) {
+            emit(AuthResult.Error(e.localizedMessage ?: "Đổi mật khẩu thất bại, vui lòng thử lại sau"))
         }
     }
 }

@@ -18,6 +18,9 @@ import com.example.englishapp.features.auth.presentation.register.RegisterScreen
 import com.example.englishapp.features.auth.presentation.forgot_password.ForgotPasswordScreen
 import com.example.englishapp.features.auth.presentation.setup.InitialSetupScreen
 import com.example.englishapp.features.auth.presentation.viewmodel.AuthViewModel
+import com.example.englishapp.features.home.presentation.ui.HomeScreen
+import com.example.englishapp.features.profile.presentation.ui.ProfileScreen
+import com.example.englishapp.features.profile.presentation.ui.ChangePasswordScreen
 import com.example.englishapp.features.onboarding.presentation.ui.OnboardingScreen
 import com.example.englishapp.features.splash.presentation.ui.SplashScreen
 
@@ -87,11 +90,55 @@ fun AppNavigation(
             )
         }
 
-        // 4. Màn hình Dashboard chính giả lập
+        // 4. Màn hình Dashboard chính
         composable(route = Screen.Home.route) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(text = "🎉 Tuyệt vời! Bạn đã vào màn hình Dashboard Chính (HomeScreen)!")
-            }
+            HomeScreen(
+                onNotificationClick = { /* TODO */ },
+                onReviewClick = { /* TODO */ },
+                onLearnClick = { /* TODO */ },
+                onAddClick = { /* TODO */ },
+                onNavItemClick = { index ->
+                    when (index) {
+                        4 -> navController.navigate(Screen.Profile.route)
+                    }
+                }
+            )
+        }
+
+        // 4b. Màn hình Hồ sơ (Profile)
+        composable(route = Screen.Profile.route) {
+            ProfileScreen(
+                onNavItemClick = { index ->
+                    when (index) {
+                        0 -> navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                    }
+                },
+                onLogoutSuccess = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onSettingsClick = {
+                    navController.navigate(Screen.ChangePassword.route)
+                }
+            )
+        }
+
+        // 4c. Đổi mật khẩu
+        composable(route = Screen.ChangePassword.route) {
+            ChangePasswordScreen(
+                onBackClick = { navController.popBackStack() },
+                onNavItemClick = { index ->
+                    when (index) {
+                        0 -> navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                        4 -> navController.popBackStack()
+                    }
+                }
+            )
         }
 
         // 5. Màn hình Đăng ký
