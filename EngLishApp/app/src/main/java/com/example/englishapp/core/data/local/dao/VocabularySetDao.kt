@@ -9,6 +9,9 @@ interface VocabularySetDao {
     @Query("SELECT * FROM vocabulary_sets WHERE isSynced = 0 AND userId = :userId")
     suspend fun getUnsyncedSets(userId: String): List<VocabularySetEntity>
 
+    @Query("SELECT * FROM vocabulary_sets WHERE userId = :userId ORDER BY createdAt DESC")
+    fun observeSets(userId: String): Flow<List<VocabularySetEntity>>
+
     @Query("SELECT * FROM vocabulary_sets WHERE setId = :setId")
     suspend fun getSetById(setId: String): VocabularySetEntity?
 
