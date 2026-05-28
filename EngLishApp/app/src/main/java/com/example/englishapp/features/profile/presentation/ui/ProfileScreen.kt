@@ -1,5 +1,6 @@
 package com.example.englishapp.features.profile.presentation.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,9 +10,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.automirrored.outlined.TrendingUp
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,12 +32,20 @@ import coil.compose.AsyncImage
 import com.example.englishapp.R
 import com.example.englishapp.features.profile.presentation.viewmodel.ProfileViewModel
 
+// =============================================================================
+// LỚP DỮ LIỆU ĐỊNH NGHĨA ITEM CHO MENU TÀI KHOẢN
+// =============================================================================
+
+// Định nghĩa cấu trúc của một dòng tùy chọn trong mục Tài khoản
 data class AccountMenuItem(
     val icon: ImageVector,
     val label: String,
-    val onClick: () -> Unit = {},
+    val onClick: () -> Unit = {}
 )
 
+// =============================================================================
+// MÀN HÌNH HỒ SƠ CHÍNH (PROFILESCREEN COMPOSE)
+// =============================================================================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -45,79 +56,96 @@ fun ProfileScreen(
     onLogoutSuccess: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
+    // 1. Lấy trạng thái UI từ ViewModel bằng collectAsState
     val uiState by viewModel.uiState.collectAsState()
     val user = uiState.user
 
+    // 2. Định nghĩa các biến hiển thị thông tin cơ bản của người dùng
     val userName = user?.name ?: "Người dùng"
     val userEmail = user?.email ?: ""
     val userLevel = "Level ${user?.level ?: "Mới"}"
     val userGoal = "Mục tiêu: ${user?.goal ?: "Chưa đặt"}"
     val avatarUrl = user?.avatar
 
+    // 3. Sử dụng remember để lưu trạng thái cục bộ cho các mục thiết lập (nhờ đó UI sẽ tự thay đổi khi cập nhật)
+    // Thanh trượt chọn số từ học mỗi ngày
     var dailyGoal by remember(user) { mutableFloatStateOf(user?.dailyGoal?.toFloat() ?: 20f) }
+    // Giờ thông báo học tập hằng ngày
     var notificationTime by remember(user) { mutableStateOf(user?.reminderTime ?: "20:00") }
+    // Bật/tắt thông báo đẩy trên điện thoại
     var pushEnabled by remember(user) { mutableStateOf(user?.pushEnabled ?: true) }
+    // Bật/tắt thông báo qua email gửi về hộp thư
     var emailEnabled by remember { mutableStateOf(false) }
+    // Trạng thái hiển thị hộp thoại chọn giờ thông báo
     var showTimePicker by remember { mutableStateOf(false) }
 
+    // 4. Lắng nghe trạng thái đăng xuất thành công để chuyển màn hình đăng nhập
     LaunchedEffect(uiState.isLoggedOut) {
         if (uiState.isLoggedOut) {
             onLogoutSuccess()
         }
     }
 
+    // 5. Chuẩn bị danh sách các nút điều hướng ở thanh Bottom Bar
     val navItems = listOf(
         Icons.Outlined.Home to stringResource(R.string.nav_home),
         Icons.AutoMirrored.Outlined.MenuBook to stringResource(R.string.nav_library),
         Icons.Outlined.School to stringResource(R.string.nav_learn),
         Icons.Outlined.BarChart to stringResource(R.string.nav_progress),
-        Icons.Filled.Person to stringResource(R.string.nav_profile),
+        Icons.Filled.Person to stringResource(R.string.nav_profile)
     )
 
+    // Chuẩn bị các nút tính năng trong phần Cài đặt Tài khoản
     val accountItems = listOf(
         AccountMenuItem(Icons.Outlined.Lock, "Đổi mật khẩu", onClick = onSettingsClick),
         AccountMenuItem(Icons.Outlined.Flag, "Mục tiêu học tập"),
         AccountMenuItem(Icons.Outlined.Star, "Trình độ hiện tại"),
-        AccountMenuItem(Icons.Outlined.Download, "Xuất dữ liệu"),
+        AccountMenuItem(Icons.Outlined.Download, "Xuất dữ liệu")
     )
 
+    // 6. Dựng bố cục màn hình Profile bằng Scaffold
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
+            // Hàm vẽ thanh tiêu đề trên cùng
             ProfileTopBar(
                 onMenuClick = onMenuClick,
-                onSettingsClick = onSettingsClick,
+                onSettingsClick = onSettingsClick
             )
         },
         bottomBar = {
+            // Hàm vẽ thanh điều hướng dưới cùng (với tab Hồ sơ được chọn sẵn ở vị trí số 4)
             ProfileBottomBar(
                 navItems = navItems,
                 selectedIndex = 4,
-                onItemClick = onNavItemClick,
+                onItemClick = onNavItemClick
             )
-        },
+        }
     ) { innerPadding ->
+        // Nội dung chính cuộn dọc bằng Column và verticalScroll
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()) // Bật tính năng cuộn
                 .padding(horizontal = 16.dp)
-                .padding(bottom = 32.dp),
+                .padding(bottom = 32.dp)
         ) {
-            Spacer(Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
+            // Khu vực 1: Hiển thị Avatar, Tên, Email và các Chip cấp độ/mục tiêu
             UserInfoSection(
                 userName = userName,
                 userEmail = userEmail,
                 userLevel = userLevel,
                 userGoal = userGoal,
                 avatarUrl = avatarUrl,
-                onEditAvatarClick = onEditAvatarClick,
+                onEditAvatarClick = onEditAvatarClick
             )
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
+            // Khu vực 2: Khối cấu hình thiết lập học tập (số từ/ngày, thời gian nhắc nhở)
             StudySettingsSection(
                 dailyGoal = dailyGoal,
                 onGoalChange = { dailyGoal = it },
@@ -126,53 +154,66 @@ fun ProfileScreen(
                 pushEnabled = pushEnabled,
                 onPushToggle = { pushEnabled = it },
                 emailEnabled = emailEnabled,
-                onEmailToggle = { emailEnabled = it },
+                onEmailToggle = { emailEnabled = it }
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
+            // Khu vực 3: Khối chứa các tùy chọn thông tin tài khoản (như đổi mật khẩu)
             AccountSection(items = accountItems)
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
+            // Khu vực 4: Nút màu đỏ thực hiện Đăng xuất tài khoản
             LogoutButton(onClick = { viewModel.logout() })
         }
     }
 
+    // 7. Hiển thị hộp thoại chọn giờ thông báo (TimePicker giả lập cho người mới học dễ tiếp cận)
     if (showTimePicker) {
         AlertDialog(
             onDismissRequest = { showTimePicker = false },
-            title = { Text("Chọn giờ thông báo") },
-            text = { Text("Tính năng chọn giờ sẽ được tích hợp với TimePickerDialog.") },
+            title = { Text(text = "Chọn giờ thông báo") },
+            text = { Text(text = "Tính năng chọn giờ học hằng ngày sẽ được tích hợp thông qua TimePickerDialog của Android.") },
             confirmButton = {
-                TextButton(onClick = { showTimePicker = false }) { Text("OK") }
-            },
+                TextButton(onClick = { showTimePicker = false }) {
+                    Text(text = "Đồng ý")
+                }
+            }
         )
     }
 }
 
+// =============================================================================
+// CÁC HÀM COMPOSE THÀNH PHẦN CHI TIẾT (ĐƠN GIẢN HÓA & GHI CHÚ RÕ RÀNG)
+// =============================================================================
+
+/**
+ * Vẽ thanh tiêu đề trên cùng (TopBar) cho màn hình Hồ sơ
+ */
 @Composable
 private fun ProfileTopBar(
     onMenuClick: () -> Unit,
-    onSettingsClick: () -> Unit,
+    onSettingsClick: () -> Unit
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 2.dp,
+        shadowElevation = 2.dp // Đổ bóng nhẹ 2dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding()
+                .statusBarsPadding() // Tránh đè lên thanh trạng thái điện thoại
                 .height(64.dp)
                 .padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            // Nút Menu và Tên App bên trái
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = onMenuClick) {
                     Icon(
-                        Icons.Outlined.Menu,
+                        imageVector = Icons.Outlined.Menu,
                         contentDescription = "Menu",
                         tint = MaterialTheme.colorScheme.onSurface
                     )
@@ -182,21 +223,22 @@ private fun ProfileTopBar(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.primary,
-                    letterSpacing = (-0.5).sp,
+                    letterSpacing = (-0.5).sp
                 )
             }
 
+            // Nhãn "Hồ sơ" và nút cài đặt bên phải
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = "Hồ sơ",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(end = 4.dp),
+                    modifier = Modifier.padding(end = 4.dp)
                 )
                 IconButton(onClick = onSettingsClick) {
                     Icon(
-                        Icons.Outlined.Settings,
+                        imageVector = Icons.Outlined.Settings,
                         contentDescription = "Cài đặt",
                         tint = MaterialTheme.colorScheme.onSurface
                     )
@@ -206,6 +248,9 @@ private fun ProfileTopBar(
     }
 }
 
+/**
+ * Khu vực hiển thị thông tin cá nhân (Avatar tròn, Tên, Email, Trình độ, Mục tiêu)
+ */
 @Composable
 private fun UserInfoSection(
     userName: String,
@@ -213,24 +258,27 @@ private fun UserInfoSection(
     userLevel: String,
     userGoal: String,
     avatarUrl: String?,
-    onEditAvatarClick: () -> Unit,
+    onEditAvatarClick: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Hộp chứa ảnh đại diện hình tròn và biểu tượng bút chì để chỉnh sửa
         Box(contentAlignment = Alignment.BottomEnd) {
             if (avatarUrl != null) {
+                // Tải ảnh từ Internet bằng AsyncImage của thư viện Coil
                 AsyncImage(
                     model = avatarUrl,
-                    contentDescription = "Avatar",
+                    contentDescription = "Ảnh đại diện",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(96.dp)
                         .clip(CircleShape)
-                        .border(4.dp, MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                        .border(4.dp, MaterialTheme.colorScheme.primaryContainer, CircleShape)
                 )
             } else {
+                // Nếu chưa có ảnh, hiển thị vòng tròn màu chứa chữ cái đầu tiên của tên người dùng
                 Box(
                     modifier = Modifier
                         .size(96.dp)
@@ -247,31 +295,36 @@ private fun UserInfoSection(
                     )
                 }
             }
+
+            // Biểu tượng nút chỉnh sửa nhỏ (hình bút chì) đặt đè lên góc dưới avatar
             Box(
                 modifier = Modifier
                     .size(32.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary)
                     .clickable { onEditAvatarClick() },
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.Outlined.Edit,
-                    contentDescription = "Sửa avatar",
+                    imageVector = Icons.Outlined.Edit,
+                    contentDescription = "Sửa ảnh đại diện",
                     tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier.size(16.dp)
                 )
             }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
+        // Hiển thị tên người dùng (In đậm)
         Text(
             text = userName,
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.ExtraBold,
             color = MaterialTheme.colorScheme.onSurface
         )
+
+        // Hiển thị hòm thư email người dùng
         Text(
             text = userEmail,
             style = MaterialTheme.typography.bodyMedium,
@@ -279,19 +332,21 @@ private fun UserInfoSection(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
+        // Dòng chứa 2 Chip trạng thái: Trình độ hiện tại và mục tiêu học tập
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Chip trình độ (Ví dụ: Level B1)
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.primaryContainer)
                     .padding(horizontal = 12.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Icon(
-                    Icons.AutoMirrored.Outlined.TrendingUp,
+                    imageVector = Icons.AutoMirrored.Outlined.TrendingUp,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(14.dp)
@@ -304,16 +359,17 @@ private fun UserInfoSection(
                 )
             }
 
+            // Chip mục tiêu học tập (Ví dụ: Mục tiêu IELTS)
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.secondaryContainer)
                     .padding(horizontal = 12.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Icon(
-                    Icons.Outlined.EmojiEvents,
+                    imageVector = Icons.Outlined.EmojiEvents,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier.size(14.dp)
@@ -329,6 +385,9 @@ private fun UserInfoSection(
     }
 }
 
+/**
+ * Khối Thẻ Thiết lập Học tập (Slider số từ, Nút chọn thời gian nhắc nhở, Bật tắt thông báo)
+ */
 @Composable
 private fun StudySettingsSection(
     dailyGoal: Float,
@@ -338,21 +397,22 @@ private fun StudySettingsSection(
     pushEnabled: Boolean,
     onPushToggle: (Boolean) -> Unit,
     emailEnabled: Boolean,
-    onEmailToggle: (Boolean) -> Unit,
+    onEmailToggle: (Boolean) -> Unit
 ) {
     Card(
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(12.dp), // Bo góc 12dp chuẩn
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
+            // Tiêu đề khối cài đặt
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    Icons.Outlined.AutoStories,
+                    imageVector = Icons.Outlined.AutoStories,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary
                 )
@@ -364,12 +424,13 @@ private fun StudySettingsSection(
                 )
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
+            // Dòng hiển thị mục tiêu số từ
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "Mục tiêu từ mới mỗi ngày",
@@ -384,34 +445,37 @@ private fun StudySettingsSection(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
+
+            // Thanh trượt Slider thay đổi số từ mục tiêu học từ 5 tới 50 từ
             Slider(
                 value = dailyGoal,
                 onValueChange = onGoalChange,
                 valueRange = 5f..50f,
-                steps = 44,
+                steps = 44, // 44 bước tương ứng nhảy từng đơn vị
                 modifier = Modifier.fillMaxWidth(),
                 colors = SliderDefaults.colors(
                     thumbColor = MaterialTheme.colorScheme.primary,
                     activeTrackColor = MaterialTheme.colorScheme.primary,
-                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
-                ),
+                    inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                )
             )
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Spacer(Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
+            // Dòng lựa chọn Thời gian thông báo học
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Icon(
-                        Icons.Outlined.Schedule,
+                        imageVector = Icons.Outlined.Schedule,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -422,13 +486,15 @@ private fun StudySettingsSection(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
+                
+                // Khối nút bấm chọn giờ
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                         .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
                         .clickable { onTimeClick() }
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
                         text = notificationTime,
@@ -439,37 +505,42 @@ private fun StudySettingsSection(
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Spacer(Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
+            // Dòng Switch: Bật tắt thông báo Push trên màn hình khoá
             SettingsSwitchRow(
                 label = "Thông báo đẩy (Push)",
                 checked = pushEnabled,
-                onCheckedChange = onPushToggle,
+                onCheckedChange = onPushToggle
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
+            // Dòng Switch: Bật tắt nhận email nhắc học hằng tuần/ngày
             SettingsSwitchRow(
                 label = "Thông báo qua Email",
                 checked = emailEnabled,
-                onCheckedChange = onEmailToggle,
+                onCheckedChange = onEmailToggle
             )
         }
     }
 }
 
+/**
+ * Hàm vẽ dòng công tắc Switch bật/tắt cài đặt
+ */
 @Composable
 private fun SettingsSwitchRow(
     label: String,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
+    onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = label,
@@ -484,39 +555,46 @@ private fun SettingsSwitchRow(
                 checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
                 checkedTrackColor = MaterialTheme.colorScheme.primary,
                 uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
-            ),
+                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
+            )
         )
     }
 }
 
+/**
+ * Khối các tuỳ chọn cài đặt của Tài khoản (Đổi mật khẩu, Trình độ, v.v.)
+ */
 @Composable
 private fun AccountSection(items: List<AccountMenuItem>) {
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column {
+            // Header đề mục nhỏ "Tài khoản"
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
             ) {
                 Text(
                     text = "Tài khoản",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
+            // Duyệt danh sách để vẽ từng dòng tuỳ chọn một
             items.forEachIndexed { index, item ->
                 AccountMenuRow(item = item)
+                
+                // Thêm đường gạch phân tách ngang nếu không phải là phần tử cuối
                 if (index < items.lastIndex) {
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outlineVariant,
@@ -528,6 +606,9 @@ private fun AccountSection(items: List<AccountMenuItem>) {
     }
 }
 
+/**
+ * Một dòng tùy chọn chứa biểu tượng, chữ và dấu chevron chỉ sang phải
+ */
 @Composable
 private fun AccountMenuRow(item: AccountMenuItem) {
     Row(
@@ -536,11 +617,11 @@ private fun AccountMenuRow(item: AccountMenuItem) {
             .clickable { item.onClick() }
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Icon(
                 imageVector = item.icon,
@@ -555,6 +636,8 @@ private fun AccountMenuRow(item: AccountMenuItem) {
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
+        
+        // Chevron trỏ sang phải báo hiệu nút bấm chuyển hướng
         Icon(
             imageVector = Icons.Filled.ChevronRight,
             contentDescription = null,
@@ -564,6 +647,9 @@ private fun AccountMenuRow(item: AccountMenuItem) {
     }
 }
 
+/**
+ * Nút Đăng xuất màu đỏ ở cuối màn hình
+ */
 @Composable
 private fun LogoutButton(onClick: () -> Unit) {
     OutlinedButton(
@@ -572,15 +658,15 @@ private fun LogoutButton(onClick: () -> Unit) {
             .fillMaxWidth()
             .height(56.dp),
         shape = RoundedCornerShape(12.dp),
-        border = androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.error),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+        border = BorderStroke(2.dp, MaterialTheme.colorScheme.error),
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
     ) {
         Icon(
-            Icons.Outlined.Logout,
-            contentDescription = null,
+            imageVector = Icons.AutoMirrored.Outlined.Logout, // Dùng phiên bản hỗ trợ xoay tự động chuẩn
+            contentDescription = "Đăng xuất",
             tint = MaterialTheme.colorScheme.error
         )
-        Spacer(Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = "Đăng xuất",
             fontWeight = FontWeight.Bold,
@@ -590,26 +676,30 @@ private fun LogoutButton(onClick: () -> Unit) {
     }
 }
 
+/**
+ * Thanh điều hướng dưới cùng (Bottom Navigation) dành riêng cho Hồ sơ
+ */
 @Composable
 private fun ProfileBottomBar(
     navItems: List<Pair<ImageVector, String>>,
     selectedIndex: Int,
-    onItemClick: (Int) -> Unit,
+    onItemClick: (Int) -> Unit
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 8.dp,
-        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
+        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .navigationBarsPadding()
+                .navigationBarsPadding() // Đệm thanh điều hướng hệ thống
                 .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
+            horizontalArrangement = Arrangement.SpaceAround
         ) {
             navItems.forEachIndexed { index, (icon, label) ->
                 val isSelected = index == selectedIndex
+                
                 Column(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
@@ -619,18 +709,18 @@ private fun ProfileBottomBar(
                         )
                         .clickable { onItemClick(index) }
                         .padding(horizontal = 12.dp, vertical = 6.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = label,
                         tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(24.dp)
                     )
                     Text(
                         text = label,
                         style = MaterialTheme.typography.labelSmall,
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
