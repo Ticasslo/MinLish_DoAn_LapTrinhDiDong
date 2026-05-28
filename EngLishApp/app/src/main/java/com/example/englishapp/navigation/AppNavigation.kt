@@ -23,6 +23,11 @@ import com.example.englishapp.features.profile.presentation.ui.ProfileScreen
 import com.example.englishapp.features.profile.presentation.ui.ChangePasswordScreen
 import com.example.englishapp.features.onboarding.presentation.ui.OnboardingScreen
 import com.example.englishapp.features.splash.presentation.ui.SplashScreen
+import com.example.englishapp.features.vocab.presentation.mysets.MySetsScreen
+import com.example.englishapp.features.vocab.presentation.create_edit.CreateSetScreen
+import com.example.englishapp.features.vocab.presentation.vocab_list.VocabListScreen
+import android.widget.Toast
+
 
 @Composable
 fun AppNavigation(
@@ -94,11 +99,12 @@ fun AppNavigation(
         composable(route = Screen.Home.route) {
             HomeScreen(
                 onNotificationClick = { /* TODO */ },
-                onReviewClick = { /* TODO */ },
-                onLearnClick = { /* TODO */ },
-                onAddClick = { /* TODO */ },
+                onReviewClick = { _ -> navController.navigate(Screen.MySets.route) },
+                onLearnClick = { _ -> navController.navigate(Screen.MySets.route) },
+                onAddClick = { navController.navigate(Screen.CreateSet.route) },
                 onNavItemClick = { index ->
                     when (index) {
+                        1 -> navController.navigate(Screen.MySets.route)
                         4 -> navController.navigate(Screen.Profile.route)
                     }
                 }
@@ -113,6 +119,7 @@ fun AppNavigation(
                         0 -> navController.navigate(Screen.Home.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
+                        1 -> navController.navigate(Screen.MySets.route)
                     }
                 },
                 onLogoutSuccess = {
@@ -176,6 +183,50 @@ fun AppNavigation(
                 },
                 onBackToLoginClick = {
                     navController.popBackStack()
+                }
+            )
+        }
+
+        // 8. Các màn hình thuộc module Vocabulary (Thư viện từ vựng)
+        composable(route = Screen.MySets.route) {
+            MySetsScreen(
+                onSetClick = { setId ->
+                    navController.navigate(Screen.VocabList.createRoute(setId))
+                },
+                onLearnClick = { setId ->
+                    navController.navigate(Screen.VocabList.createRoute(setId))
+                },
+                onCreateSetClick = {
+                    navController.navigate(Screen.CreateSet.route)
+                },
+                onNavItemClick = { index ->
+                    when (index) {
+                        0 -> navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                        4 -> navController.navigate(Screen.Profile.route)
+                    }
+                }
+            )
+        }
+
+        composable(route = Screen.CreateSet.route) {
+            CreateSetScreen(
+                onBackClick = { navController.popBackStack() },
+                onSaveSuccess = { navController.popBackStack() }
+            )
+        }
+
+        composable(route = Screen.VocabList.route) { backStackEntry ->
+            val setId = backStackEntry.arguments?.getString("setId") ?: ""
+            VocabListScreen(
+                setId = setId,
+                onBackClick = { navController.popBackStack() },
+                onLearnClick = { _ ->
+                    Toast.makeText(navController.context, "Tính năng học SRS đang phát triển!", Toast.LENGTH_SHORT).show()
+                },
+                onReviewClick = { _ ->
+                    Toast.makeText(navController.context, "Tính năng ôn tập SRS đang phát triển!", Toast.LENGTH_SHORT).show()
                 }
             )
         }

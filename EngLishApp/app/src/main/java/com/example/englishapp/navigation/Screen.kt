@@ -10,4 +10,11 @@ sealed class Screen(val route: String) {
     object Home : Screen("home_screen")
     object Profile : Screen("profile_screen")
     object ChangePassword : Screen("change_password_screen")
+
+    // Các màn hình thuộc tính năng quản lý từ vựng (Vocabulary)
+    object MySets : Screen("my_sets_screen")
+    object CreateSet : Screen("create_set_screen")
+    object VocabList : Screen("vocab_list_screen/{setId}") {
+        fun createRoute(setId: String) = "vocab_list_screen/$setId"
+    }
 }
