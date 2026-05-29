@@ -97,6 +97,7 @@ dependencies {
     implementation(libs.hilt.worker)
     ksp(libs.hilt.worker.compiler)
     implementation(libs.coil.compose)
+    implementation(libs.lottie.compose)
 
     implementation("com.google.android.gms:play-services-auth:21.3.0")
 }

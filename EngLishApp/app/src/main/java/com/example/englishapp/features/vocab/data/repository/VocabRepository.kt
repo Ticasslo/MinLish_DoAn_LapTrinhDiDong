@@ -3,6 +3,7 @@ package com.example.englishapp.features.vocab.data.repository
 import com.example.englishapp.core.data.local.dao.SrsCardDao
 import com.example.englishapp.core.data.local.dao.VocabularySetDao
 import com.example.englishapp.core.data.local.dao.WordDao
+import com.example.englishapp.core.data.local.entity.SrsCardEntity
 import com.example.englishapp.core.data.mapper.toDomain
 import com.example.englishapp.core.data.mapper.toEntity
 import com.example.englishapp.core.data.model.VocabularySet
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -163,6 +165,75 @@ class VocabRepository @Inject constructor(
     override fun searchWords(setId: String, query: String): Flow<List<Word>> {
         return wordDao.searchWords(setId, query).map { list ->
             list.map { it.toDomain() }
+        }
+    }
+
+    // =============================================================================
+    // 3. THÊM DỮ LIỆU MẪU (SAMPLE DATA SEEDING)
+    // =============================================================================
+
+    override suspend fun seedSampleData(userId: String) {
+        val existingSets = vocabularySetDao.observeSets(userId).first()
+        if (existingSets.isNotEmpty()) return // Đã có dữ liệu, không thêm nữa
+
+        val sampleSets = listOf(
+            Triple("IELTS Vocabulary", "Essential words for IELTS 7.0+", listOf("IELTS", "Academic")),
+            Triple("Common Phrases", "Useful expressions for daily conversation", listOf("Communication", "Basic")),
+            Triple("Tech Terminology", "Vocabulary for IT professionals", listOf("IT", "Business"))
+        )
+
+        sampleSets.forEach { (name, desc, tags) ->
+            val setId = UUID.randomUUID().toString()
+            val set = VocabularySet(
+                setId = setId,
+                userId = userId,
+                name = name,
+                description = desc,
+                tags = tags
+            )
+            
+            // Lưu bộ từ
+            insertOrUpdateSet(set)
+
+            // Thêm từ mẫu cho mỗi bộ
+            val words = when(name) {
+                "IELTS Vocabulary" -> listOf(
+                    Word(word = "Meticulous", meaning = "Tỉ mỉ, kỹ càng", pronunciation = "/məˈtɪk.jə.ləs/", example = "She was meticulous in her research."),
+                    Word(word = "Pragmatic", meaning = "Thực dụng, thực tế", pronunciation = "/præɡˈmæt.ɪk/", example = "A pragmatic approach to the problem."),
+                    Word(word = "Inevitable", meaning = "Không thể tránh khỏi", pronunciation = "/ɪˈnev.ɪ.tə.bəl/", example = "Change is inevitable.")
+                )
+                "Common Phrases" -> listOf(
+                    Word(word = "Break the ice", meaning = "Phá vỡ bầu không khí ngột ngạt", pronunciation = "/breɪk ðə aɪs/", example = "A joke is a good way to break the ice."),
+                    Word(word = "Under the weather", meaning = "Cảm thấy không khỏe", pronunciation = "/ˈʌn.də ðə ˈweð.ə/", example = "I'm feeling a bit under the weather today.")
+                )
+                else -> listOf(
+                    Word(word = "Scalability", meaning = "Khả năng mở rộng", pronunciation = "/ˌskeɪ.ləˈbɪl.ə.ti/", example = "The system is designed for high scalability."),
+                    Word(word = "Deprecate", meaning = "Phản đối, không khuyến khích sử dụng", pronunciation = "/ˈdep.rə.keɪt/", example = "This feature will be deprecated in the next version.")
+                )
+            }
+
+            words.forEach { word ->
+                val wordWithIds = word.copy(
+                    wordId = UUID.randomUUID().toString(),
+                    setId = setId,
+                    userId = userId
+                )
+                insertOrUpdateWord(wordWithIds)
+                
+                // Tự động tạo SRS Card cho mỗi từ mới thêm vào
+                val srsCard = SrsCardEntity(
+                    cardId = UUID.randomUUID().toString(),
+                    userId = userId,
+                    wordId = wordWithIds.wordId,
+                    setId = setId,
+                    status = "new",
+                    isSynced = false
+                )
+                srsCardDao.upsertCard(srsCard)
+            }
+            
+            // Cập nhật lại số lượng đếm của bộ từ
+            recalculateSetCounts(setId, userId)
         }
     }
 

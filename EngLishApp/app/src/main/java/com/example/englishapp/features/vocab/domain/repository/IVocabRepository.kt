@@ -47,4 +47,7 @@ interface IVocabRepository {
 
     // Tìm kiếm từ vựng theo từ khóa (word hoặc meaning) trong bộ từ vựng chỉ định
     fun searchWords(setId: String, query: String): Flow<List<Word>>
+
+    // Thêm dữ liệu mẫu (Sample data) khi lần đầu sử dụng
+    suspend fun seedSampleData(userId: String)
 }

@@ -25,7 +25,11 @@ import com.example.englishapp.features.onboarding.presentation.ui.OnboardingScre
 import com.example.englishapp.features.splash.presentation.ui.SplashScreen
 import com.example.englishapp.features.vocab.presentation.mysets.MySetsScreen
 import com.example.englishapp.features.vocab.presentation.create_edit.CreateSetScreen
+import androidx.compose.runtime.remember
+import com.example.englishapp.features.learn.presentation.viewmodel.LearnViewModel
 import com.example.englishapp.features.vocab.presentation.vocab_list.VocabListScreen
+import com.example.englishapp.features.learn.presentation.flashcard.FlashcardScreen
+import com.example.englishapp.features.learn.presentation.complete.SessionCompleteScreen
 import android.widget.Toast
 
 
@@ -222,13 +226,63 @@ fun AppNavigation(
             VocabListScreen(
                 setId = setId,
                 onBackClick = { navController.popBackStack() },
-                onLearnClick = { _ ->
-                    Toast.makeText(navController.context, "Tính năng học SRS đang phát triển!", Toast.LENGTH_SHORT).show()
+                onLearnClick = { id ->
+                    navController.navigate(Screen.Flashcard.createRoute(id, "learn"))
                 },
-                onReviewClick = { _ ->
-                    Toast.makeText(navController.context, "Tính năng ôn tập SRS đang phát triển!", Toast.LENGTH_SHORT).show()
+                onReviewClick = { id ->
+                    navController.navigate(Screen.Flashcard.createRoute(id, "review"))
                 }
             )
+        }
+
+        composable(route = Screen.Flashcard.route) { backStackEntry ->
+            val setId = backStackEntry.arguments?.getString("setId") ?: ""
+            val mode = backStackEntry.arguments?.getString("mode") ?: "learn"
+
+            FlashcardScreen(
+                setId = setId,
+                mode = mode,
+                onBackClick = { navController.popBackStack() },
+                onSessionComplete = {
+                    // SỬA: Không popUpTo ở đây để SessionComplete vẫn có thể truy cập ViewModel
+                    navController.navigate(Screen.SessionComplete.route)
+                }
+            )
+        }
+
+        composable(route = Screen.SessionComplete.route) {
+            val flashcardBackStackEntry = remember(it) {
+                try {
+                    // Lấy entry của Flashcard để dùng chung ViewModel
+                    navController.getBackStackEntry(Screen.Flashcard.route)
+                } catch (e: Exception) {
+                    null
+                }
+            }
+
+            if (flashcardBackStackEntry != null) {
+                val learnViewModel: LearnViewModel = hiltViewModel(flashcardBackStackEntry)
+                val uiState by learnViewModel.uiState.collectAsState()
+
+                SessionCompleteScreen(
+                    stats = uiState.sessionStats,
+                    onContinueClick = {
+                        // Khi tiếp tục, quay về và dọn dẹp flashcard cũ
+                        navController.popBackStack(Screen.Flashcard.route, inclusive = true)
+                    },
+                    onHomeClick = {
+                        // Về Home và dọn dẹp toàn bộ luồng học
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                    }
+                )
+            } else {
+                // Fallback nếu không tìm thấy entry (ví dụ: truy cập trực tiếp bằng route)
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(Screen.Home.route) { inclusive = true }
+                }
+            }
         }
 
     }
