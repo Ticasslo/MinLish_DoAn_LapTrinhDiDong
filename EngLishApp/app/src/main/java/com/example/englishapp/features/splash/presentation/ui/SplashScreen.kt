@@ -15,13 +15,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.englishapp.features.splash.presentation.viewmodel.SplashViewModel
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
-    onTimeout: () -> Unit
+    onTimeout: () -> Unit,
+    viewModel: SplashViewModel = hiltViewModel()
 ) {
     LaunchedEffect(Unit) {
+        viewModel.initAppData()
         delay(1500)
         onTimeout()
     }

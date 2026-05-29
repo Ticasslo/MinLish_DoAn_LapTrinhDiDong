@@ -17,4 +17,9 @@ sealed class Screen(val route: String) {
     object VocabList : Screen("vocab_list_screen/{setId}") {
         fun createRoute(setId: String) = "vocab_list_screen/$setId"
     }
+    object Flashcard : Screen("flashcard_screen/{setId}/{mode}") {
+        fun createRoute(setId: String, mode: String) = "flashcard_screen/$setId/$mode"
+    }
+    object SessionComplete : Screen("session_complete_screen")
 }
+
