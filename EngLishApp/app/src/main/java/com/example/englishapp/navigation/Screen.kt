@@ -9,7 +9,9 @@ sealed class Screen(val route: String) {
     object Setup : Screen("setup_screen")
     object Home : Screen("home_screen")
     object Profile : Screen("profile_screen")
+    object Progress : Screen("progress_screen")
     object ChangePassword : Screen("change_password_screen")
+    object Notification : Screen("notification_screen")
 
     // Các màn hình thuộc tính năng quản lý từ vựng (Vocabulary)
     object MySets : Screen("my_sets_screen")
