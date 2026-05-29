@@ -62,4 +62,7 @@ interface SrsCardDao {
 
     @Query("UPDATE srs_cards SET isSynced = 1, updatedAt = :updatedAt WHERE cardId = :cardId")
     suspend fun markAsSynced(cardId: String, updatedAt: Long = System.currentTimeMillis())
+
+    @Query("SELECT * FROM srs_cards WHERE userId = :userId")
+    fun getAllCards(userId: String): Flow<List<SrsCardEntity>>
 }

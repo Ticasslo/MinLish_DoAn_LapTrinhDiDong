@@ -21,9 +21,11 @@ import com.example.englishapp.features.auth.presentation.viewmodel.AuthViewModel
 import com.example.englishapp.features.home.presentation.ui.HomeScreen
 import com.example.englishapp.features.profile.presentation.ui.ProfileScreen
 import com.example.englishapp.features.profile.presentation.ui.ChangePasswordScreen
+import com.example.englishapp.features.progress.presentation.ui.ProgressScreen
 import com.example.englishapp.features.onboarding.presentation.ui.OnboardingScreen
 import com.example.englishapp.features.splash.presentation.ui.SplashScreen
 import com.example.englishapp.features.vocab.presentation.mysets.MySetsScreen
+import com.example.englishapp.features.notification.presentation.ui.NotificationScreen
 import com.example.englishapp.features.vocab.presentation.create_edit.CreateSetScreen
 import androidx.compose.runtime.remember
 import com.example.englishapp.features.learn.presentation.viewmodel.LearnViewModel
@@ -102,20 +104,39 @@ fun AppNavigation(
         // 4. Màn hình Dashboard chính
         composable(route = Screen.Home.route) {
             HomeScreen(
-                onNotificationClick = { /* TODO */ },
+                onNotificationClick = { navController.navigate(Screen.Notification.route) },
                 onReviewClick = { _ -> navController.navigate(Screen.MySets.route) },
                 onLearnClick = { _ -> navController.navigate(Screen.MySets.route) },
                 onAddClick = { navController.navigate(Screen.CreateSet.route) },
+                onDetailClick = { navController.navigate(Screen.Progress.route) },
+                onSeeAllClick = { navController.navigate(Screen.MySets.route) },
                 onNavItemClick = { index ->
                     when (index) {
                         1 -> navController.navigate(Screen.MySets.route)
+                        3 -> navController.navigate(Screen.Progress.route)
                         4 -> navController.navigate(Screen.Profile.route)
                     }
                 }
             )
         }
 
-        // 4b. Màn hình Hồ sơ (Profile)
+        // 4b. Màn hình Tiến độ (Progress)
+        composable(route = Screen.Progress.route) {
+            ProgressScreen(
+                onBackClick = { navController.popBackStack() },
+                onNotificationClick = { navController.navigate(Screen.Notification.route) }
+            )
+        }
+
+        // 4c. Màn hình Thông báo (Notification)
+        composable(route = Screen.Notification.route) {
+            NotificationScreen(
+                onBackClick = { navController.popBackStack() },
+                onActionClick = { /* Handle deep links if needed */ }
+            )
+        }
+
+        // 4c. Màn hình Hồ sơ (Profile)
         composable(route = Screen.Profile.route) {
             ProfileScreen(
                 onNavItemClick = { index ->
@@ -124,6 +145,7 @@ fun AppNavigation(
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
                         1 -> navController.navigate(Screen.MySets.route)
+                        3 -> navController.navigate(Screen.Progress.route)
                     }
                 },
                 onLogoutSuccess = {
@@ -146,6 +168,8 @@ fun AppNavigation(
                         0 -> navController.navigate(Screen.Home.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
+                        1 -> navController.navigate(Screen.MySets.route)
+                        3 -> navController.navigate(Screen.Progress.route)
                         4 -> navController.popBackStack()
                     }
                 }
@@ -208,6 +232,7 @@ fun AppNavigation(
                         0 -> navController.navigate(Screen.Home.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
+                        3 -> navController.navigate(Screen.Progress.route)
                         4 -> navController.navigate(Screen.Profile.route)
                     }
                 }
