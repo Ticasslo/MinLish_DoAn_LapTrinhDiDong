@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">EngLish App</string>
+
+    <!-- Change Password Screen -->
+    <string name="change_password">Đổi mật khẩu</string>
+    <string name="change_password_desc">Vui lòng nhập mật khẩu hiện tại và mật khẩu mới để thay đổi.</string>
+    <string name="current_password">Mật khẩu hiện tại</string>
+    <string name="current_password_placeholder">Nhập mật khẩu hiện tại</string>
+    <string name="new_password">Mật khẩu mới</string>
+    <string name="new_password_placeholder">Nhập mật khẩu mới</string>
+    <string name="confirm_new_password">Xác nhận mật khẩu mới</string>
+    <string name="confirm_new_password_placeholder">Nhập lại mật khẩu mới</string>
+    <string name="save_changes">Lưu thay đổi</string>
+    <string name="password_length_error">Mật khẩu phải có ít nhất 8 ký tự.</string>
+    <string name="same_password_error">Mật khẩu mới không được trùng với mật khẩu cũ.</string>
+    <string name="confirm_password_error">Mật khẩu không khớp.</string>
+    <string name="change_password_success">Đổi mật khẩu thành công!</string>
+    <string name="back">Quay lại</string>
+    <string name="show_password">Hiện mật khẩu</string>
+    <string name="hide_password">Ẩn mật khẩu</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_library">Library</string>
+    <string name="nav_learn">Learn</string>
+    <string name="nav_progress">Progress</string>
+    <string name="nav_profile">Profile</string>
+</resources>

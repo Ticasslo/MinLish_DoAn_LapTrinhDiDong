@@ -1,0 +1,95 @@
+package com.example.englishapp.features.splash.presentation.ui
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.englishapp.features.splash.presentation.viewmodel.SplashViewModel
+import kotlinx.coroutines.delay
+
+@Composable
+fun SplashScreen(
+    onTimeout: () -> Unit,
+    viewModel: SplashViewModel = hiltViewModel()
+) {
+    LaunchedEffect(Unit) {
+        viewModel.initAppData()
+        delay(1500)
+        onTimeout()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.primary),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+        // Khối chứa Icon
+            Box(
+                modifier = Modifier
+                    .size(96.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.15f),
+                        shape = RoundedCornerShape(32.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.MenuBook,
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+                Icon(
+                    imageVector = Icons.Filled.Lightbulb,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .align(Alignment.TopEnd)
+                        .padding(top = 12.dp, end = 12.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "MinLish",
+                style = MaterialTheme.typography.displayLarge,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "HỌC TỪ VỰNG THÔNG MINH",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SplashPreview() {
+    _root_ide_package_.com.example.englishapp.core.ui.theme.EngLishAppTheme {
+        SplashScreen(onTimeout = {})
+    }
+}
