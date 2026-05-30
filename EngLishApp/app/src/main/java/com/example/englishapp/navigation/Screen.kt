@@ -11,6 +11,7 @@ sealed class Screen(val route: String) {
     object Profile : Screen("profile_screen")
     object Progress : Screen("progress_screen")
     object ChangePassword : Screen("change_password_screen")
+    object Settings : Screen("settings_screen")
     object Notification : Screen("notification_screen")
 
     // Các màn hình thuộc tính năng quản lý từ vựng (Vocabulary)

@@ -79,9 +79,8 @@ fun ChangePasswordScreen(
     val navItems = listOf(
         Icons.Outlined.Home to stringResource(R.string.nav_home),
         Icons.AutoMirrored.Outlined.MenuBook to stringResource(R.string.nav_library),
-        Icons.Outlined.School to stringResource(R.string.nav_learn),
         Icons.Outlined.BarChart to stringResource(R.string.nav_progress),
-        Icons.Filled.Person to stringResource(R.string.nav_profile),
+        Icons.Filled.Person to stringResource(R.string.nav_profile)
     )
 
     Scaffold(
@@ -92,7 +91,7 @@ fun ChangePasswordScreen(
         bottomBar = {
             ChangePasswordBottomBar(
                 navItems = navItems,
-                selectedIndex = 4,
+                selectedIndex = 3,
                 onItemClick = onNavItemClick,
             )
         },

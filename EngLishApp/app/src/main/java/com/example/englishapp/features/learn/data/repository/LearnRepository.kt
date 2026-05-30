@@ -2,8 +2,7 @@ package com.example.englishapp.features.learn.data.repository
 
 import com.example.englishapp.core.data.local.dao.SrsCardDao
 import com.example.englishapp.core.data.local.dao.WordDao
-import com.example.englishapp.core.data.mapper.toDomain
-import com.example.englishapp.core.data.mapper.toEntity
+import com.example.englishapp.core.data.mapper.*
 import com.example.englishapp.core.data.model.SrsCard
 import com.example.englishapp.core.data.model.Word
 import com.example.englishapp.core.data.remote.FirebaseService
@@ -19,6 +18,7 @@ import javax.inject.Singleton
 class LearnRepository @Inject constructor(
     private val srsCardDao: SrsCardDao,
     private val wordDao: WordDao,
+    private val studySessionDao: com.example.englishapp.core.data.local.dao.StudySessionDao,
     private val firebaseService: FirebaseService,
     networkUtil: NetworkUtil
 ) : BaseRepository(networkUtil), ILearnRepository {
@@ -51,5 +51,19 @@ class LearnRepository @Inject constructor(
 
     override suspend fun getWordById(wordId: String): Word? {
         return wordDao.getWordById(wordId)?.toDomain()
+    }
+
+    override suspend fun saveStudySession(session: com.example.englishapp.core.data.model.StudySession) {
+        syncItem(
+            localOp = {
+                studySessionDao.insertSession(session.toEntity().copy(isSynced = false))
+            },
+            remoteOp = {
+                firebaseService.saveStudySession(session)
+            },
+            onSyncSuccess = {
+                studySessionDao.insertSession(session.toEntity().copy(isSynced = true))
+            }
+        )
     }
 }

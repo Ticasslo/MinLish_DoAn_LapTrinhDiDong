@@ -65,4 +65,35 @@ interface SrsCardDao {
 
     @Query("SELECT * FROM srs_cards WHERE userId = :userId")
     fun getAllCards(userId: String): Flow<List<SrsCardEntity>>
+
+    // Đếm số từ đã học/ôn trong khoảng thời gian
+    @Query("""
+        SELECT COUNT(*) FROM srs_cards 
+        WHERE userId = :userId 
+        AND lastReview >= :startOfDay 
+        AND lastReview <= :endOfDay
+        AND status != 'new'
+    """)
+    fun getStudiedCardsCountInRange(userId: String, startOfDay: Long, endOfDay: Long): Flow<Int>
+
+    // === Home screen: đếm card đến hạn theo từng set ===
+    @Query("""
+        SELECT setId, COUNT(*) as dueCount FROM srs_cards 
+        WHERE userId = :userId AND nextReview <= :now AND status != 'new'
+        GROUP BY setId HAVING dueCount > 0
+        ORDER BY dueCount DESC
+    """)
+    fun getDueCountPerSet(userId: String, now: Long): Flow<List<SetDueCount>>
+
+    // === Home screen: đếm card mới (chưa học) theo từng set ===
+    @Query("""
+        SELECT setId, COUNT(*) as newCount FROM srs_cards 
+        WHERE userId = :userId AND status = 'new'
+        GROUP BY setId HAVING newCount > 0
+        ORDER BY newCount DESC
+    """)
+    fun getNewCountPerSet(userId: String): Flow<List<SetNewCount>>
 }
+
+data class SetDueCount(val setId: String, val dueCount: Int)
+data class SetNewCount(val setId: String, val newCount: Int)

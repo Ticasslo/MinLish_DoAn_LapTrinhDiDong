@@ -35,47 +35,23 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.englishapp.R
+import com.example.englishapp.features.home.domain.model.HomeNewWordDeck
+import com.example.englishapp.features.home.domain.model.HomeRecentDeck
+import com.example.englishapp.features.home.domain.model.HomeReviewDeck
 import com.example.englishapp.features.home.presentation.viewmodel.HomeViewModel
-
-// =============================================================================
-// CÁC LỚP DỮ LIỆU ĐỊNH NGHĨA THÔNG TIN HIỂN THỊ TRÊN MÀN HÌNH HOME
-// =============================================================================
-
-// Thẻ đại diện cho các bộ từ vựng cần ôn tập lại (SRS)
-data class ReviewDeck(
-    val icon: ImageVector,
-    val title: String,
-    val subtitle: String,
-    val badgeText: String,
-    val isUrgent: Boolean = false
-)
-
-// Thẻ đại diện cho các bộ từ vựng mới học hôm nay
-data class NewWordDeck(
-    val icon: ImageVector,
-    val title: String,
-    val subtitle: String
-)
-
-// Thẻ đại diện cho hoạt động hoặc học phần đã học gần đây
-data class RecentDeck(
-    val icon: ImageVector,
-    val title: String,
-    val subtitle: String
-)
 
 // Đối tượng đại diện cho một nút bấm trên thanh điều hướng dưới cùng (Bottom Nav)
 data class NavItem(val icon: ImageVector, val label: String)
 
 
 // =============================================================================
-// MÀN HÌNH CHÍNH (HOMESCREEN COMOSABLE)
+// MÀN HÌNH CHÍNH (HOMESCREEN COMPOSABLE)
 // =============================================================================
 @Composable
 fun HomeScreen(
     onNotificationClick: () -> Unit = {},
-    onReviewClick: (ReviewDeck) -> Unit = {},
-    onLearnClick: (NewWordDeck) -> Unit = {},
+    onReviewClick: (HomeReviewDeck) -> Unit = {},
+    onLearnClick: (HomeNewWordDeck) -> Unit = {},
     onDetailClick: () -> Unit = {},
     onSeeAllClick: () -> Unit = {},
     onNavItemClick: (Int) -> Unit = {},
@@ -99,27 +75,14 @@ fun HomeScreen(
         label = "home_progress"
     )
 
-    // Tính toán số từ ôn tập phân bổ tạm thời vào 2 bộ thẻ
-    val deck1Count = (uiState.dueWordsCount + 1) / 2
-    val deck2Count = uiState.dueWordsCount / 2
+    // 3. Chuẩn bị danh sách dữ liệu thực từ ViewModel
+    val reviewDecks = uiState.reviewDecks
+    val newWordDecks = uiState.newWordDecks
+    val recentDecks = uiState.recentDecks
 
-    // 3. Chuẩn bị danh sách dữ liệu để hiển thị lên giao diện
-    val reviewDecks = listOf(
-        ReviewDeck(Icons.Outlined.Work, "Business English", "$deck1Count từ cần ôn tập lại", "KHẨN CẤP", true),
-        ReviewDeck(Icons.Outlined.Flight, "Travel Essentials", "$deck2Count từ cần ôn tập lại", "ĐẾN HẠN")
-    )
-    val newWordDecks = listOf(
-        NewWordDeck(Icons.Outlined.Psychology, "IELTS Vocab", "10 từ mới đề xuất"),
-        NewWordDeck(Icons.Outlined.Restaurant, "Daily Life", "5 từ mới đề xuất")
-    )
-    val recentDecks = listOf(
-        RecentDeck(Icons.AutoMirrored.Outlined.MenuBook, "Oxford 3000 Keywords", "Lần cuối: 2 giờ trước • 85% thuộc"),
-        RecentDeck(Icons.Outlined.Movie, "Movie Phrases", "Lần cuối: 1 ngày trước • 42% thuộc")
-    )
     val navItems = listOf(
-        NavItem(Icons.Filled.Home, stringResource(R.string.nav_home)),
+        NavItem(Icons.Outlined.Home, stringResource(R.string.nav_home)),
         NavItem(Icons.AutoMirrored.Outlined.MenuBook, stringResource(R.string.nav_library)),
-        NavItem(Icons.Outlined.School, stringResource(R.string.nav_learn)),
         NavItem(Icons.Outlined.BarChart, stringResource(R.string.nav_progress)),
         NavItem(Icons.Outlined.Person, stringResource(R.string.nav_profile))
     )
@@ -148,24 +111,6 @@ fun HomeScreen(
                     onNavItemClick(index)
                 }
             )
-        },
-        floatingActionButton = {
-            // Nút bấm tròn (FAB) thêm từ vựng mới nổi ở góc dưới bên phải
-            FloatingActionButton(
-                onClick = onAddClick,
-                shape = CircleShape, // Nút tròn xoe
-                containerColor = MaterialTheme.colorScheme.primary, // Màu xanh thương hiệu
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier
-                    .padding(bottom = 8.dp)
-                    .size(56.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = "Thêm từ mới",
-                    modifier = Modifier.size(28.dp)
-                )
-            }
         }
     ) { innerPadding ->
         // 5. Nội dung chính của màn hình chứa trong một Column cuộn dọc (verticalScroll)
@@ -186,24 +131,30 @@ fun HomeScreen(
                 onDetailClick = onDetailClick
             )
 
-            // Mục 2: Phần danh sách các thẻ từ vựng cần ôn tập ngay
-            ReviewSection(
-                dueCount = uiState.dueWordsCount,
-                decks = reviewDecks,
-                onReviewClick = onReviewClick
-            )
+            // Mục 2: Phần danh sách các thẻ từ vựng cần ôn tập ngay (chỉ hiện khi có dữ liệu)
+            if (reviewDecks.isNotEmpty()) {
+                ReviewSection(
+                    dueCount = uiState.dueWordsCount,
+                    decks = reviewDecks,
+                    onReviewClick = onReviewClick
+                )
+            }
 
-            // Mục 3: Phần gợi ý các bộ từ mới ngày hôm nay
-            NewWordsSection(
-                decks = newWordDecks,
-                onLearnClick = onLearnClick
-            )
+            // Mục 3: Phần gợi ý các bộ từ mới ngày hôm nay (chỉ hiện khi có dữ liệu)
+            if (newWordDecks.isNotEmpty()) {
+                NewWordsSection(
+                    decks = newWordDecks,
+                    onLearnClick = onLearnClick
+                )
+            }
 
-            // Mục 4: Phần danh sách lịch sử học tập gần đây
-            RecentSection(
-                decks = recentDecks,
-                onSeeAllClick = onSeeAllClick
-            )
+            // Mục 4: Phần danh sách lịch sử học tập gần đây (chỉ hiện khi có dữ liệu)
+            if (recentDecks.isNotEmpty()) {
+                RecentSection(
+                    decks = recentDecks,
+                    onSeeAllClick = onSeeAllClick
+                )
+            }
         }
     }
 }
@@ -424,13 +375,13 @@ private fun TodaySummarySection(
 }
 
 /**
- * Mục "Cần ôn ngay" (Danh sách cuộn ngang chứa các thẻ ôn tập SRS)
+ * Mục "Cần ôn ngay" (Danh sách cuộn ngang chứa các thẻ ôn tập SRS — DỮ LIỆU THỰC)
  */
 @Composable
 private fun ReviewSection(
     dueCount: Int,
-    decks: List<ReviewDeck>,
-    onReviewClick: (ReviewDeck) -> Unit
+    decks: List<HomeReviewDeck>,
+    onReviewClick: (HomeReviewDeck) -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -471,8 +422,14 @@ private fun ReviewSection(
         ) {
             Spacer(modifier = Modifier.width(16.dp)) // Tạo khoảng cách lề trái cho thẻ đầu
             
-            // Vẽ các thẻ bộ ôn tập
-            decks.forEach { deck ->
+            // Vẽ các thẻ bộ ôn tập — DỮ LIỆU THỰC từ database
+            decks.forEachIndexed { index, deck ->
+                // Thẻ đầu tiên (nhiều từ cần ôn nhất) → isUrgent
+                val isUrgent = index == 0
+                val badgeText = if (isUrgent) "KHẨN CẤP" else "ĐẾN HẠN"
+                // Chọn icon dựa trên tag đầu tiên của set, fallback → MenuBook
+                val icon = getIconForTags(deck.tags)
+
                 Card(
                     modifier = Modifier
                         .width(256.dp)
@@ -497,15 +454,15 @@ private fun ReviewSection(
                                     .size(48.dp)
                                     .clip(RoundedCornerShape(8.dp))
                                     .background(
-                                        if (deck.isUrgent) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
+                                        if (isUrgent) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
                                         else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = deck.icon,
+                                    imageVector = icon,
                                     contentDescription = null,
-                                    tint = if (deck.isUrgent) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                    tint = if (isUrgent) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(28.dp)
                                 )
                             }
@@ -514,27 +471,29 @@ private fun ReviewSection(
                             Box(
                                 modifier = Modifier
                                     .clip(CircleShape)
-                                    .background(if (deck.isUrgent) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer)
+                                    .background(if (isUrgent) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer)
                                     .padding(horizontal = 8.dp, vertical = 2.dp)
                             ) {
                                 Text(
-                                    text = deck.badgeText,
+                                    text = badgeText,
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (deck.isUrgent) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer
+                                    color = if (isUrgent) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer
                                 )
                             }
                         }
 
-                        // Thân thẻ: Tiêu đề bộ từ và mô tả số lượng từ
+                        // Thân thẻ: Tiêu đề bộ từ thực và số lượng từ thực
                         Column {
                             Text(
-                                text = deck.title,
+                                text = deck.name,
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                text = deck.subtitle,
+                                text = "${deck.dueCount} từ cần ôn tập lại",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -560,12 +519,12 @@ private fun ReviewSection(
 }
 
 /**
- * Mục "Từ mới hôm nay" (Danh sách các thẻ học đề xuất cuộn ngang có viền đứt)
+ * Mục "Từ mới hôm nay" (Danh sách các thẻ học đề xuất cuộn ngang — DỮ LIỆU THỰC)
  */
 @Composable
 private fun NewWordsSection(
-    decks: List<NewWordDeck>,
-    onLearnClick: (NewWordDeck) -> Unit
+    decks: List<HomeNewWordDeck>,
+    onLearnClick: (HomeNewWordDeck) -> Unit
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -586,6 +545,8 @@ private fun NewWordsSection(
             Spacer(modifier = Modifier.width(16.dp))
             
             decks.forEach { deck ->
+                val icon = getIconForTags(deck.tags)
+
                 Column(
                     modifier = Modifier
                         .width(192.dp)
@@ -609,25 +570,27 @@ private fun NewWordsSection(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = deck.icon,
+                            imageVector = icon,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(36.dp)
                         )
                     }
 
-                    // Tên bộ từ và số lượng từ đề xuất
+                    // Tên bộ từ thực và số lượng từ mới thực
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = deck.title,
+                            text = deck.name,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = deck.subtitle,
+                            text = "${deck.newCount} từ mới chưa học",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -644,7 +607,7 @@ private fun NewWordsSection(
                         )
                     ) {
                         Text(
-                            text = "Học ngay",
+                            text = "Khám phá ngay",
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -656,11 +619,11 @@ private fun NewWordsSection(
 }
 
 /**
- * Mục "Gần đây" (Danh sách dọc các bộ học đã tương tác gần nhất)
+ * Mục "Gần đây" (Danh sách dọc các bộ học đã tương tác gần nhất — DỮ LIỆU THỰC)
  */
 @Composable
 private fun RecentSection(
-    decks: List<RecentDeck>,
+    decks: List<HomeRecentDeck>,
     onSeeAllClick: () -> Unit
 ) {
     Column(
@@ -715,7 +678,7 @@ private fun RecentSection(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = deck.icon,
+                            imageVector = Icons.AutoMirrored.Outlined.MenuBook,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )
@@ -723,19 +686,19 @@ private fun RecentSection(
 
                     Spacer(modifier = Modifier.width(16.dp))
 
-                    // Tên và thông tin học tập gần đây
+                    // Tên set thực và thông tin thời gian + % mastered thực
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
-                            text = deck.title,
+                            text = deck.name,
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Medium,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = deck.subtitle,
+                            text = "Lần cuối: ${formatTimeAgo(deck.lastStudiedAt)} • ${deck.masteredPercent}% thuộc",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -802,5 +765,45 @@ private fun HomeBottomBar(
                 }
             }
         }
+    }
+}
+
+
+// =============================================================================
+// HÀM TIỆN ÍCH (UTILITY FUNCTIONS)
+// =============================================================================
+
+/**
+ * Chọn icon dựa trên tag đầu tiên của bộ từ vựng.
+ * Nếu không khớp tag nào → trả về icon sách mặc định.
+ */
+private fun getIconForTags(tags: List<String>): ImageVector {
+    val firstTag = tags.firstOrNull()?.lowercase() ?: ""
+    return when {
+        firstTag.contains("business") -> Icons.Outlined.Work
+        firstTag.contains("travel") -> Icons.Outlined.Flight
+        firstTag.contains("ielts") -> Icons.Outlined.Psychology
+        firstTag.contains("toeic") -> Icons.Outlined.School
+        firstTag.contains("communication") -> Icons.Outlined.Chat
+        else -> Icons.AutoMirrored.Outlined.MenuBook
+    }
+}
+
+/**
+ * Chuyển timestamp (millis) thành chuỗi "X phút/giờ/ngày trước" dễ đọc.
+ */
+private fun formatTimeAgo(timestamp: Long): String {
+    val now = System.currentTimeMillis()
+    val diffMs = now - timestamp
+    val diffMinutes = diffMs / (1000 * 60)
+    val diffHours = diffMs / (1000 * 60 * 60)
+    val diffDays = diffMs / (1000 * 60 * 60 * 24)
+
+    return when {
+        diffMinutes < 1 -> "vừa xong"
+        diffMinutes < 60 -> "$diffMinutes phút trước"
+        diffHours < 24 -> "$diffHours giờ trước"
+        diffDays < 30 -> "$diffDays ngày trước"
+        else -> "${diffDays / 30} tháng trước"
     }
 }

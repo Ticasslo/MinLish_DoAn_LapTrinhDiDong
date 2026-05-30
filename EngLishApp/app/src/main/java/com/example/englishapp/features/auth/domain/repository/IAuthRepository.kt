@@ -34,4 +34,10 @@ interface IAuthRepository {
 
     // Đổi mật khẩu
     fun changePassword(currentPassword: String, newPassword: String): Flow<AuthResult<Unit>>
+
+    // Cập nhật cài đặt học tập (dailyGoal, reminderTime, pushEnabled)
+    fun updateUserSettings(dailyGoal: Int, reminderTime: String, pushEnabled: Boolean): Flow<AuthResult<Unit>>
+
+    // Cập nhật ảnh đại diện
+    fun updateUserAvatar(avatarUrl: String): Flow<AuthResult<Unit>>
 }

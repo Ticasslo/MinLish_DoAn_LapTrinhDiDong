@@ -44,4 +44,19 @@ interface StudySessionDao {
     // Lấy session cuối cùng của user (kiểm tra streak)
     @Query("SELECT * FROM study_sessions WHERE userId = :userId ORDER BY date DESC LIMIT 1")
     suspend fun getLastSession(userId: String): StudySessionEntity?
+
+    // === Home screen: session gần nhất của mỗi set ===
+    @Query("""
+        SELECT s.* FROM study_sessions s
+        INNER JOIN (
+            SELECT setId, MAX(date) as maxDate 
+            FROM study_sessions 
+            WHERE userId = :userId 
+            GROUP BY setId
+        ) latest ON s.setId = latest.setId AND s.date = latest.maxDate
+        WHERE s.userId = :userId
+        ORDER BY s.date DESC
+        LIMIT :limit
+    """)
+    fun getRecentSessionsPerSet(userId: String, limit: Int = 5): Flow<List<StudySessionEntity>>
 }

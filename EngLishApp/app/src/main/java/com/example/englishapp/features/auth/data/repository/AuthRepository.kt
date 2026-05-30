@@ -250,4 +250,70 @@ class AuthRepository @Inject constructor(
             emit(AuthResult.Error(e.localizedMessage ?: "Đổi mật khẩu thất bại, vui lòng thử lại sau"))
         }
     }
+
+    override fun updateUserSettings(dailyGoal: Int, reminderTime: String, pushEnabled: Boolean): Flow<AuthResult<Unit>> = flow {
+        emit(AuthResult.Loading)
+        try {
+            val uid = firebaseService.currentUserId
+            if (uid != null) {
+                // 1. Update Local trước (Offline-first)
+                val localUser = userDao.getCurrentUser()
+                if (localUser != null) {
+                    val updatedEntity = localUser.copy(
+                        dailyGoal = dailyGoal,
+                        reminderTime = reminderTime,
+                        pushEnabled = pushEnabled,
+                        isSynced = false,
+                        updatedAt = System.currentTimeMillis()
+                    )
+                    userDao.upsertUser(updatedEntity)
+
+                    // 2. Nếu có mạng thì đẩy lên Firestore
+                    if (networkUtil.isOnline()) {
+                        firebaseService.saveUser(updatedEntity.toDomain())
+                        userDao.markUserAsSynced(uid)
+                    } else {
+                        SyncWorker.startImmediate(context)
+                    }
+                }
+                emit(AuthResult.Success(Unit))
+            } else {
+                emit(AuthResult.Error("Người dùng chưa đăng nhập"))
+            }
+        } catch (e: Exception) {
+            emit(AuthResult.Error(e.message ?: "Cập nhật cài đặt thất bại"))
+        }
+    }
+
+    override fun updateUserAvatar(avatarUrl: String): Flow<AuthResult<Unit>> = flow {
+        emit(AuthResult.Loading)
+        try {
+            val uid = firebaseService.currentUserId
+            if (uid != null) {
+                // 1. Update Local trước (Offline-first)
+                val localUser = userDao.getCurrentUser()
+                if (localUser != null) {
+                    val updatedEntity = localUser.copy(
+                        avatar = avatarUrl,
+                        isSynced = false,
+                        updatedAt = System.currentTimeMillis()
+                    )
+                    userDao.upsertUser(updatedEntity)
+
+                    // 2. Nếu có mạng thì đẩy lên Firestore
+                    if (networkUtil.isOnline()) {
+                        firebaseService.saveUser(updatedEntity.toDomain())
+                        userDao.markUserAsSynced(uid)
+                    } else {
+                        SyncWorker.startImmediate(context)
+                    }
+                }
+                emit(AuthResult.Success(Unit))
+            } else {
+                emit(AuthResult.Error("Người dùng chưa đăng nhập"))
+            }
+        } catch (e: Exception) {
+            emit(AuthResult.Error(e.message ?: "Cập nhật ảnh đại diện thất bại"))
+        }
+    }
 }

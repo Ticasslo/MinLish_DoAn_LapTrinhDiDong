@@ -11,9 +11,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material.icons.automirrored.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,9 +40,18 @@ import com.example.englishapp.features.progress.presentation.viewmodel.ProgressV
 fun ProgressScreen(
     onBackClick: () -> Unit = {},
     onNotificationClick: () -> Unit = {},
+    onNavItemClick: (Int) -> Unit = {},
     viewModel: ProgressViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Danh sách nút điều hướng dưới đáy màn hình
+    val navItems = listOf(
+        Pair(Icons.Outlined.Home, "Trang chủ"),
+        Pair(Icons.AutoMirrored.Outlined.MenuBook, "Thư viện"),
+        Pair(Icons.Outlined.BarChart, "Tiến độ"),
+        Pair(Icons.Outlined.Person, "Hồ sơ")
+    )
 
     Scaffold(
         topBar = {
@@ -64,6 +75,13 @@ fun ProgressScreen(
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
+            )
+        },
+        bottomBar = {
+            ProgressBottomBar(
+                navItems = navItems,
+                selectedIndex = 3, // Vị trí Tiến độ
+                onItemClick = onNavItemClick
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -512,5 +530,57 @@ fun RetentionItem(retention: SetRetention) {
 fun ProgressScreenPreview() {
     EngLishAppTheme {
         ProgressScreen()
+    }
+}
+
+/**
+ * Thanh Bottom Navigation cho màn hình Tiến độ
+ */
+@Composable
+private fun ProgressBottomBar(
+    navItems: List<Pair<ImageVector, String>>,
+    selectedIndex: Int,
+    onItemClick: (Int) -> Unit
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 8.dp,
+        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            navItems.forEachIndexed { index, item ->
+                val isSelected = index == selectedIndex
+                
+                Column(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .then(
+                            if (isSelected) Modifier.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f))
+                            else Modifier
+                        )
+                        .clickable { onItemClick(index) }
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = item.first,
+                        contentDescription = item.second,
+                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Text(
+                        text = item.second,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
     }
 }

@@ -11,13 +11,23 @@ import androidx.compose.ui.Modifier
 import com.example.englishapp.navigation.AppNavigation
 import com.example.englishapp.core.ui.theme.EngLishAppTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import com.example.englishapp.core.util.ThemeManager
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var themeManager: ThemeManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val isDark = isSystemInDarkTheme()
+            val isSystemDark = isSystemInDarkTheme()
+            val isDark by themeManager.isDarkMode.collectAsState(initial = isSystemDark)
+            
             EngLishAppTheme(darkTheme = isDark) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),

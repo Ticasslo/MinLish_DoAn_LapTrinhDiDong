@@ -14,6 +14,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class LearnUiState(
+    val setId: String = "",
+    val sessionType: String = "review",
     val isLoading: Boolean = false,
     val cards: List<Pair<SrsCard, Word>> = emptyList(),
     val currentIndex: Int = 0,
@@ -26,7 +28,11 @@ data class LearnUiState(
 data class SessionStats(
     val totalStudied: Int = 0,
     val correctCount: Int = 0,
-    val startTime: Long = System.currentTimeMillis()
+    val startTime: Long = System.currentTimeMillis(),
+    val againCount: Int = 0,
+    val hardCount: Int = 0,
+    val goodCount: Int = 0,
+    val easyCount: Int = 0
 )
 
 @HiltViewModel
@@ -42,7 +48,7 @@ class LearnViewModel @Inject constructor(
 
     fun loadCards(setId: String, mode: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, sessionStats = SessionStats()) }
+            _uiState.update { it.copy(setId = setId, sessionType = mode, isLoading = true, sessionStats = SessionStats()) }
             val userId = getCurrentUserUseCase()?.userId ?: return@launch
             
             try {
@@ -88,11 +94,16 @@ class LearnViewModel @Inject constructor(
             repository.updateSrsCard(updatedCard)
             
             val updatedCards = state.cards.toMutableList()
-            val isCorrect = rating.lowercase() != "again"
+            val r = rating.lowercase()
+            val isCorrect = r != "again"
             
             val updatedStats = state.sessionStats.copy(
                 totalStudied = state.sessionStats.totalStudied + 1,
-                correctCount = if (isCorrect) state.sessionStats.correctCount + 1 else state.sessionStats.correctCount
+                correctCount = if (isCorrect) state.sessionStats.correctCount + 1 else state.sessionStats.correctCount,
+                againCount = state.sessionStats.againCount + if (r == "again") 1 else 0,
+                hardCount = state.sessionStats.hardCount + if (r == "hard") 1 else 0,
+                goodCount = state.sessionStats.goodCount + if (r == "good") 1 else 0,
+                easyCount = state.sessionStats.easyCount + if (r == "easy") 1 else 0
             )
             
             if (rating.lowercase() == "again") {
@@ -118,8 +129,32 @@ class LearnViewModel @Inject constructor(
                     }
                 } else {
                     _uiState.update { it.copy(isSessionComplete = true, sessionStats = updatedStats) }
+                    saveStudySession(updatedStats)
                 }
             }
+        }
+    }
+
+    private fun saveStudySession(stats: SessionStats) {
+        val state = _uiState.value
+        val userId = getCurrentUserUseCase()?.userId ?: return
+        
+        viewModelScope.launch {
+            val session = com.example.englishapp.core.data.model.StudySession(
+                sessionId = java.util.UUID.randomUUID().toString(),
+                userId = userId,
+                setId = state.setId,
+                date = System.currentTimeMillis(),
+                duration = ((System.currentTimeMillis() - stats.startTime) / 1000).toInt(),
+                wordsStudied = stats.totalStudied,
+                accuracy = if (stats.totalStudied > 0) ((stats.goodCount + stats.easyCount).toDouble() / stats.totalStudied) * 100.0 else 0.0,
+                againCount = stats.againCount,
+                hardCount = stats.hardCount,
+                goodCount = stats.goodCount,
+                easyCount = stats.easyCount,
+                sessionType = state.sessionType
+            )
+            repository.saveStudySession(session)
         }
     }
 }

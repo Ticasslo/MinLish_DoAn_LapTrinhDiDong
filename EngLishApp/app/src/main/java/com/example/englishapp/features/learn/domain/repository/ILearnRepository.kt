@@ -9,4 +9,5 @@ interface ILearnRepository {
     suspend fun getNewCards(userId: String, setId: String, limit: Int): List<SrsCard>
     suspend fun updateSrsCard(card: SrsCard)
     suspend fun getWordById(wordId: String): Word?
+    suspend fun saveStudySession(session: com.example.englishapp.core.data.model.StudySession)
 }

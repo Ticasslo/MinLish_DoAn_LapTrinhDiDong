@@ -105,16 +105,16 @@ fun AppNavigation(
         composable(route = Screen.Home.route) {
             HomeScreen(
                 onNotificationClick = { navController.navigate(Screen.Notification.route) },
-                onReviewClick = { _ -> navController.navigate(Screen.MySets.route) },
-                onLearnClick = { _ -> navController.navigate(Screen.MySets.route) },
+                onReviewClick = { deck -> navController.navigate(Screen.VocabList.createRoute(deck.setId)) },
+                onLearnClick = { deck -> navController.navigate(Screen.VocabList.createRoute(deck.setId)) },
                 onAddClick = { navController.navigate(Screen.CreateSet.route) },
                 onDetailClick = { navController.navigate(Screen.Progress.route) },
                 onSeeAllClick = { navController.navigate(Screen.MySets.route) },
                 onNavItemClick = { index ->
                     when (index) {
                         1 -> navController.navigate(Screen.MySets.route)
-                        3 -> navController.navigate(Screen.Progress.route)
-                        4 -> navController.navigate(Screen.Profile.route)
+                        2 -> navController.navigate(Screen.Progress.route)
+                        3 -> navController.navigate(Screen.Profile.route)
                     }
                 }
             )
@@ -124,7 +124,16 @@ fun AppNavigation(
         composable(route = Screen.Progress.route) {
             ProgressScreen(
                 onBackClick = { navController.popBackStack() },
-                onNotificationClick = { navController.navigate(Screen.Notification.route) }
+                onNotificationClick = { navController.navigate(Screen.Notification.route) },
+                onNavItemClick = { index ->
+                    when (index) {
+                        0 -> navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                        1 -> navController.navigate(Screen.MySets.route)
+                        3 -> navController.navigate(Screen.Profile.route)
+                    }
+                }
             )
         }
 
@@ -145,7 +154,7 @@ fun AppNavigation(
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
                         1 -> navController.navigate(Screen.MySets.route)
-                        3 -> navController.navigate(Screen.Progress.route)
+                        2 -> navController.navigate(Screen.Progress.route)
                     }
                 },
                 onLogoutSuccess = {
@@ -154,7 +163,20 @@ fun AppNavigation(
                     }
                 },
                 onSettingsClick = {
-                    navController.navigate(Screen.ChangePassword.route)
+                    navController.navigate(Screen.Settings.route)
+                }
+            )
+        }
+
+        // 4c. Màn hình Cài đặt (Settings)
+        composable(route = Screen.Settings.route) {
+            com.example.englishapp.features.profile.presentation.ui.SettingsScreen(
+                onBackClick = { navController.popBackStack() },
+                onChangePasswordClick = { navController.navigate(Screen.ChangePassword.route) },
+                onLogoutClick = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
@@ -169,8 +191,8 @@ fun AppNavigation(
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
                         1 -> navController.navigate(Screen.MySets.route)
-                        3 -> navController.navigate(Screen.Progress.route)
-                        4 -> navController.popBackStack()
+                        2 -> navController.navigate(Screen.Progress.route)
+                        3 -> navController.popBackStack()
                     }
                 }
             )
@@ -232,8 +254,8 @@ fun AppNavigation(
                         0 -> navController.navigate(Screen.Home.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
-                        3 -> navController.navigate(Screen.Progress.route)
-                        4 -> navController.navigate(Screen.Profile.route)
+                        2 -> navController.navigate(Screen.Progress.route)
+                        3 -> navController.navigate(Screen.Profile.route)
                     }
                 }
             )

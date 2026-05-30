@@ -58,7 +58,6 @@ fun MySetsScreen(
     val navItems = listOf(
         NavItem(Icons.Outlined.Home, stringResource(R.string.nav_home)),
         NavItem(Icons.AutoMirrored.Outlined.MenuBook, stringResource(R.string.nav_library)),
-        NavItem(Icons.Outlined.School, stringResource(R.string.nav_learn)),
         NavItem(Icons.Outlined.BarChart, stringResource(R.string.nav_progress)),
         NavItem(Icons.Outlined.Person, stringResource(R.string.nav_profile))
     )

@@ -27,6 +27,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.englishapp.R
@@ -52,13 +55,22 @@ fun ProfileScreen(
     onNavItemClick: (Int) -> Unit = {},
     onMenuClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
-    onEditAvatarClick: () -> Unit = {},
     onLogoutSuccess: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     // 1. Lấy trạng thái UI từ ViewModel bằng collectAsState
     val uiState by viewModel.uiState.collectAsState()
     val user = uiState.user
+
+    // Khai báo launcher để chọn ảnh đại diện từ thư viện
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            uri?.let {
+                viewModel.updateAvatar(it.toString())
+            }
+        }
+    )
 
     // 2. Định nghĩa các biến hiển thị thông tin cơ bản của người dùng
     val userName = user?.name ?: "Người dùng"
@@ -90,7 +102,6 @@ fun ProfileScreen(
     val navItems = listOf(
         Icons.Outlined.Home to stringResource(R.string.nav_home),
         Icons.AutoMirrored.Outlined.MenuBook to stringResource(R.string.nav_library),
-        Icons.Outlined.School to stringResource(R.string.nav_learn),
         Icons.Outlined.BarChart to stringResource(R.string.nav_progress),
         Icons.Filled.Person to stringResource(R.string.nav_profile)
     )
@@ -117,7 +128,7 @@ fun ProfileScreen(
             // Hàm vẽ thanh điều hướng dưới cùng (với tab Hồ sơ được chọn sẵn ở vị trí số 4)
             ProfileBottomBar(
                 navItems = navItems,
-                selectedIndex = 4,
+                selectedIndex = 3,
                 onItemClick = onNavItemClick
             )
         }
@@ -140,7 +151,11 @@ fun ProfileScreen(
                 userLevel = userLevel,
                 userGoal = userGoal,
                 avatarUrl = avatarUrl,
-                onEditAvatarClick = onEditAvatarClick
+                onEditAvatarClick = { 
+                    photoPickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                    )
+                }
             )
 
             Spacer(modifier = Modifier.height(32.dp))
