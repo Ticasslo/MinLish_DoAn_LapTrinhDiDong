@@ -21,6 +21,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.englishapp.core.data.sync.SyncWorker
 import com.example.englishapp.features.auth.domain.model.AuthResult
 import com.example.englishapp.features.auth.presentation.viewmodel.AuthViewModel
 
@@ -33,6 +34,7 @@ fun RegisterScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val authState = uiState.authResult
+    val isLoading = uiState.isLoading
     val scrollState = rememberScrollState()
 
     var name by remember { mutableStateOf("") }
@@ -48,7 +50,7 @@ fun RegisterScreen(
             onRegisterSuccess()
             viewModel.resetState()
         } else if (authState is AuthResult.Error) {
-            Toast.makeText(context, (authState as AuthResult.Error).message, Toast.LENGTH_LONG).show()
+            Toast.makeText(context, authState.message, Toast.LENGTH_LONG).show()
             viewModel.resetState()
         }
     }
@@ -77,7 +79,7 @@ fun RegisterScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             singleLine = true,
-            enabled = authState !is AuthResult.Loading,
+            enabled = !isLoading,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = MaterialTheme.colorScheme.onBackground,
                 unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
@@ -98,7 +100,7 @@ fun RegisterScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             singleLine = true,
-            enabled = authState !is AuthResult.Loading,
+            enabled = !isLoading,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = MaterialTheme.colorScheme.onBackground,
                 unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
@@ -120,7 +122,7 @@ fun RegisterScreen(
             shape = RoundedCornerShape(12.dp),
             singleLine = true,
             visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            enabled = authState !is AuthResult.Loading,
+            enabled = !isLoading,
             trailingIcon = {
                 val icon = if (isPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility
                 IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
@@ -152,7 +154,7 @@ fun RegisterScreen(
             shape = RoundedCornerShape(12.dp),
             singleLine = true,
             visualTransformation = if (isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            enabled = authState !is AuthResult.Loading,
+            enabled = !isLoading,
             trailingIcon = {
                 val icon = if (isConfirmPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility
                 IconButton(onClick = { isConfirmPasswordVisible = !isConfirmPasswordVisible }) {
@@ -188,9 +190,9 @@ fun RegisterScreen(
             },
             modifier = Modifier.fillMaxWidth().height(50.dp),
             shape = RoundedCornerShape(12.dp),
-            enabled = authState !is AuthResult.Loading
+            enabled = !isLoading
         ) {
-            if (authState is AuthResult.Loading) {
+            if (isLoading) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
             } else {
                 Text(

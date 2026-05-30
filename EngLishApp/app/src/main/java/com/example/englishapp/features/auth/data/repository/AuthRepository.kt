@@ -1,6 +1,9 @@
 package com.example.englishapp.features.auth.data.repository
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import com.example.englishapp.core.data.local.AppDatabase
 import com.example.englishapp.core.data.local.dao.UserDao
 import com.example.englishapp.core.data.mapper.toDomain
@@ -26,6 +29,7 @@ class AuthRepository @Inject constructor(
     private val userDao: UserDao,
     private val appDatabase: AppDatabase,
     private val networkUtil: NetworkUtil,
+    private val dataStore: DataStore<Preferences>,
     @ApplicationContext private val context: Context
 ) : IAuthRepository {
 
@@ -91,8 +95,19 @@ class AuthRepository @Inject constructor(
     }
 
     override suspend fun logout() {
+        // 1. Hủy tất cả các tác vụ đồng bộ đang chạy hoặc đang chờ bằng Unique Name
+        val workManager = androidx.work.WorkManager.getInstance(context)
+        workManager.cancelUniqueWork(SyncWorker.PERIODIC_SYNC_WORK_NAME)
+        workManager.cancelUniqueWork(SyncWorker.IMMEDIATE_SYNC_WORK_NAME)
+        
+        // 2. Đăng xuất Firebase
         firebaseService.auth.signOut()
+        
+        // 3. Xóa sạch Database Local để bảo mật thông tin user cũ
         appDatabase.clearAllTables()
+
+        // 4. Xóa các mốc thời gian đồng bộ trong DataStore để khi user khác (hoặc user cũ) login lại sẽ sync toàn bộ
+        dataStore.edit { it.clear() }
     }
 
     override fun observeCurrentUser(): Flow<User?> {
@@ -120,7 +135,7 @@ class AuthRepository @Inject constructor(
         }
     }
 
-    override fun updateUserProfile(goal: String, level: String): Flow<AuthResult<Unit>> = flow {
+    override fun updateUserProfile(goal: String, level: String, pushEnabled: Boolean): Flow<AuthResult<Unit>> = flow {
         emit(AuthResult.Loading)
         try {
             val uid = firebaseService.currentUserId
@@ -131,6 +146,7 @@ class AuthRepository @Inject constructor(
                     val updatedEntity = localUser.copy(
                         goal = goal, 
                         level = level, 
+                        pushEnabled = pushEnabled,
                         isSynced = false,
                         updatedAt = System.currentTimeMillis()
                     )
@@ -145,7 +161,7 @@ class AuthRepository @Inject constructor(
                         SyncWorker.startImmediate(context)
                     }
                 }
-                
+
                 emit(AuthResult.Success(Unit))
             } else {
                 emit(AuthResult.Error("Người dùng chưa đăng nhập"))
@@ -192,7 +208,7 @@ class AuthRepository @Inject constructor(
                     userData = User(userId = uid, email = user.email ?: "", name = user.displayName ?: "User")
                     if (networkUtil.isOnline()) firebaseService.saveUser(userData)
                 }
-                
+
                 userDao.upsertUser(userData.toEntity().copy(isSynced = true))
                 
                 // Kích hoạt đồng bộ ngay lập tức

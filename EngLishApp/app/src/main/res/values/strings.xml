@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">EngLish App</string>
+    <string name="app_name">MinLish</string>
 
     <!-- Change Password Screen -->
     <string name="change_password">Đổi mật khẩu</string>

@@ -8,7 +8,7 @@ import javax.inject.Inject
 class UpdateProfileUseCase @Inject constructor(
     private val repository: IAuthRepository
 ) {
-    operator fun invoke(goal: String, level: String): Flow<AuthResult<Unit>> {
-        return repository.updateUserProfile(goal, level)
+    operator fun invoke(goal: String, level: String, pushEnabled: Boolean): Flow<AuthResult<Unit>> {
+        return repository.updateUserProfile(goal, level, pushEnabled)
     }
 }

@@ -34,28 +34,32 @@ class AuthViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
 
     init {
-        checkCurrentUser()
+        observeUserStatus()
     }
 
-    private fun checkCurrentUser() {
+    private fun observeUserStatus() {
         viewModelScope.launch {
-            // Theo dõi sự thay đổi của User từ Database (Reactive)
+            // Quan sát sự thay đổi của User trong Local DB (Offline-first)
             getCurrentUserUseCase.observe().collect { user ->
                 if (user != null) {
                     _uiState.update { it.copy(authResult = AuthResult.Success(user)) }
                 } else {
-                    // Nếu local chưa có, kiểm tra Firebase Auth
+                    // Nếu Local DB chưa có (mới cài lại app hoặc login lần đầu), 
+                    // nhưng Firebase đã login, thì lấy dữ liệu từ Server
                     val firebaseUser = getCurrentUserUseCase()
                     if (firebaseUser != null) {
-                        // Lấy dữ liệu từ Firestore về Local
-                        getUserDataUseCase(firebaseUser.userId).collect { result ->
-                            if (result is AuthResult.Success) {
-                                _uiState.update { it.copy(authResult = result) }
-                            }
-                        }
-                    } else {
-                        _uiState.update { it.copy(authResult = null) }
+                        fetchFullUserData(firebaseUser.userId)
                     }
+                }
+            }
+        }
+    }
+
+    private fun fetchFullUserData(uid: String) {
+        viewModelScope.launch {
+            getUserDataUseCase(uid).collect { result ->
+                if (result is AuthResult.Success) {
+                    _uiState.update { it.copy(authResult = result) }
                 }
             }
         }
@@ -69,7 +73,10 @@ class AuthViewModel @Inject constructor(
                 createdAt = System.currentTimeMillis()
             )
             registerUseCase(user, password).collect { result ->
-                _uiState.update { it.copy(authResult = result) }
+                _uiState.update { it.copy(
+                    authResult = result,
+                    isLoading = result is AuthResult.Loading
+                ) }
             }
         }
     }
@@ -77,36 +84,49 @@ class AuthViewModel @Inject constructor(
     fun login(email: String, password: String) {
         viewModelScope.launch {
             loginUseCase(email, password).collect { result ->
-                _uiState.update { it.copy(authResult = result) }
+                _uiState.update { it.copy(
+                    authResult = result,
+                    isLoading = result is AuthResult.Loading
+                ) }
             }
         }
     }
 
     fun signInWithGoogle(idToken: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, authResult = AuthResult.Loading) }
             val result = signInWithGoogleUseCase(idToken)
-            _uiState.update { it.copy(authResult = result, isLoading = false) }
+            _uiState.update { it.copy(
+                authResult = result,
+                isLoading = false
+            ) }
         }
     }
 
     fun logout() {
         viewModelScope.launch {
             logoutUseCase()
-            _uiState.update { it.copy(authResult = null) }
+            _uiState.update { AuthUiState() }
         }
     }
 
-    fun updateUserProfile(goal: String, level: String) {
+    fun updateUserProfile(goal: String, level: String, pushEnabled: Boolean) {
         viewModelScope.launch {
-            updateProfileUseCase(goal, level).collect { result ->
-                _uiState.update { it.copy(updateProfileResult = result) }
+            updateProfileUseCase(goal, level, pushEnabled).collect { result ->
+                _uiState.update { it.copy(
+                    updateProfileResult = result,
+                    isLoading = result is AuthResult.Loading
+                ) }
             }
         }
     }
 
     fun resetState() {
-        _uiState.update { it.copy(updateProfileResult = null) }
+        _uiState.update { it.copy(
+            authResult = null,
+            updateProfileResult = null,
+            isLoading = false
+        ) }
     }
 
     fun getStartDestination(): String {

@@ -11,40 +11,40 @@ import androidx.compose.runtime.Composable
 // =============================================================================
 private val DarkColorScheme = darkColorScheme(
     // Primary
-    primary = _root_ide_package_.com.example.englishapp.core.ui.theme.PrimaryDark,
-    onPrimary = _root_ide_package_.com.example.englishapp.core.ui.theme.OnPrimaryDark,
-    primaryContainer = _root_ide_package_.com.example.englishapp.core.ui.theme.PrimaryContainerDark,
-    onPrimaryContainer = _root_ide_package_.com.example.englishapp.core.ui.theme.OnPrimaryContainerDark,
+    primary = PrimaryDark,
+    onPrimary = OnPrimaryDark,
+    primaryContainer = PrimaryContainerDark,
+    onPrimaryContainer = OnPrimaryContainerDark,
 
     // Secondary
-    secondary = _root_ide_package_.com.example.englishapp.core.ui.theme.SecondaryDark,
-    onSecondary = _root_ide_package_.com.example.englishapp.core.ui.theme.OnSecondaryDark,
-    secondaryContainer = _root_ide_package_.com.example.englishapp.core.ui.theme.SecondaryContainerDark,
-    onSecondaryContainer = _root_ide_package_.com.example.englishapp.core.ui.theme.OnSecondaryContainerDark,
+    secondary = SecondaryDark,
+    onSecondary = OnSecondaryDark,
+    secondaryContainer = SecondaryContainerDark,
+    onSecondaryContainer = OnSecondaryContainerDark,
 
     // Tertiary
-    tertiary = _root_ide_package_.com.example.englishapp.core.ui.theme.TertiaryDark,
-    onTertiary = _root_ide_package_.com.example.englishapp.core.ui.theme.OnTertiaryDark,
-    tertiaryContainer = _root_ide_package_.com.example.englishapp.core.ui.theme.TertiaryContainerDark,
-    onTertiaryContainer = _root_ide_package_.com.example.englishapp.core.ui.theme.OnTertiaryContainerDark,
+    tertiary = TertiaryDark,
+    onTertiary = OnTertiaryDark,
+    tertiaryContainer = TertiaryContainerDark,
+    onTertiaryContainer = OnTertiaryContainerDark,
 
     // Background / Surface
-    background = _root_ide_package_.com.example.englishapp.core.ui.theme.BackgroundDark,
-    onBackground = _root_ide_package_.com.example.englishapp.core.ui.theme.OnBackgroundDark,
-    surface = _root_ide_package_.com.example.englishapp.core.ui.theme.SurfaceDark,
-    onSurface = _root_ide_package_.com.example.englishapp.core.ui.theme.OnSurfaceDark,
-    surfaceVariant = _root_ide_package_.com.example.englishapp.core.ui.theme.SurfaceVariantDark,
-    onSurfaceVariant = _root_ide_package_.com.example.englishapp.core.ui.theme.OnSurfaceVariantDark,
+    background = BackgroundDark,
+    onBackground = OnBackgroundDark,
+    surface = SurfaceDark,
+    onSurface = OnSurfaceDark,
+    surfaceVariant = SurfaceVariantDark,
+    onSurfaceVariant = OnSurfaceVariantDark,
 
     // Outline
-    outline = _root_ide_package_.com.example.englishapp.core.ui.theme.OutlineDark,
-    outlineVariant = _root_ide_package_.com.example.englishapp.core.ui.theme.OutlineVariantDark,
+    outline = OutlineDark,
+    outlineVariant = OutlineVariantDark,
 
     // Error
-    error = _root_ide_package_.com.example.englishapp.core.ui.theme.ColorError,
-    onError = _root_ide_package_.com.example.englishapp.core.ui.theme.ColorOnError,
-    errorContainer = _root_ide_package_.com.example.englishapp.core.ui.theme.ErrorContainerDark,
-    onErrorContainer = _root_ide_package_.com.example.englishapp.core.ui.theme.OnErrorContainerDark,
+    error = ColorError,
+    onError = ColorOnError,
+    errorContainer = ErrorContainerDark,
+    onErrorContainer = OnErrorContainerDark,
 )
 
 // =============================================================================
@@ -52,40 +52,40 @@ private val DarkColorScheme = darkColorScheme(
 // =============================================================================
 private val LightColorScheme = lightColorScheme(
     // Primary
-    primary = _root_ide_package_.com.example.englishapp.core.ui.theme.PrimaryLight,
-    onPrimary = _root_ide_package_.com.example.englishapp.core.ui.theme.OnPrimaryLight,
-    primaryContainer = _root_ide_package_.com.example.englishapp.core.ui.theme.PrimaryContainerLight,
-    onPrimaryContainer = _root_ide_package_.com.example.englishapp.core.ui.theme.OnPrimaryContainerLight,
+    primary = PrimaryLight,
+    onPrimary = OnPrimaryLight,
+    primaryContainer = PrimaryContainerLight,
+    onPrimaryContainer = OnPrimaryContainerLight,
 
     // Secondary
-    secondary = _root_ide_package_.com.example.englishapp.core.ui.theme.SecondaryLight,
-    onSecondary = _root_ide_package_.com.example.englishapp.core.ui.theme.OnSecondaryLight,
-    secondaryContainer = _root_ide_package_.com.example.englishapp.core.ui.theme.SecondaryContainerLight,
-    onSecondaryContainer = _root_ide_package_.com.example.englishapp.core.ui.theme.OnSecondaryContainerLight,
+    secondary = SecondaryLight,
+    onSecondary = OnSecondaryLight,
+    secondaryContainer = SecondaryContainerLight,
+    onSecondaryContainer = OnSecondaryContainerLight,
 
     // Tertiary
-    tertiary = _root_ide_package_.com.example.englishapp.core.ui.theme.TertiaryLight,
-    onTertiary = _root_ide_package_.com.example.englishapp.core.ui.theme.OnTertiaryLight,
-    tertiaryContainer = _root_ide_package_.com.example.englishapp.core.ui.theme.TertiaryContainerLight,
-    onTertiaryContainer = _root_ide_package_.com.example.englishapp.core.ui.theme.OnTertiaryContainerLight,
+    tertiary = TertiaryLight,
+    onTertiary = OnTertiaryLight,
+    tertiaryContainer = TertiaryContainerLight,
+    onTertiaryContainer = OnTertiaryContainerLight,
 
     // Background / Surface
-    background = _root_ide_package_.com.example.englishapp.core.ui.theme.BackgroundLight,
-    onBackground = _root_ide_package_.com.example.englishapp.core.ui.theme.OnBackgroundLight,
-    surface = _root_ide_package_.com.example.englishapp.core.ui.theme.SurfaceLight,
-    onSurface = _root_ide_package_.com.example.englishapp.core.ui.theme.OnSurfaceLight,
-    surfaceVariant = _root_ide_package_.com.example.englishapp.core.ui.theme.SurfaceVariantLight,
-    onSurfaceVariant = _root_ide_package_.com.example.englishapp.core.ui.theme.OnSurfaceVariantLight,
+    background = BackgroundLight,
+    onBackground = OnBackgroundLight,
+    surface = SurfaceLight,
+    onSurface = OnSurfaceLight,
+    surfaceVariant = SurfaceVariantLight,
+    onSurfaceVariant = OnSurfaceVariantLight,
 
     // Outline
-    outline = _root_ide_package_.com.example.englishapp.core.ui.theme.OutlineLight,
-    outlineVariant = _root_ide_package_.com.example.englishapp.core.ui.theme.OutlineVariantLight,
+    outline = OutlineLight,
+    outlineVariant = OutlineVariantLight,
 
     // Error
-    error = _root_ide_package_.com.example.englishapp.core.ui.theme.ColorError,
-    onError = _root_ide_package_.com.example.englishapp.core.ui.theme.ColorOnError,
-    errorContainer = _root_ide_package_.com.example.englishapp.core.ui.theme.ErrorContainerLight,
-    onErrorContainer = _root_ide_package_.com.example.englishapp.core.ui.theme.OnErrorContainerLight,
+    error = ColorError,
+    onError = ColorOnError,
+    errorContainer = ErrorContainerLight,
+    onErrorContainer = OnErrorContainerLight,
 )
 
 // =============================================================================
@@ -98,11 +98,11 @@ fun EngLishAppTheme(
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) _root_ide_package_.com.example.englishapp.core.ui.theme.DarkColorScheme else _root_ide_package_.com.example.englishapp.core.ui.theme.LightColorScheme
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = _root_ide_package_.com.example.englishapp.core.ui.theme.Typography,
+        typography = Typography,
         content = content
     )
 }

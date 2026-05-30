@@ -5,6 +5,11 @@ import com.example.englishapp.core.data.local.dao.*
 import com.example.englishapp.core.data.mapper.*
 import com.example.englishapp.core.data.remote.FirebaseService
 import com.example.englishapp.core.util.NetworkUtil
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -18,16 +23,42 @@ class SyncRepository @Inject constructor(
     private val notificationDao: NotificationDao,
     private val userDao: UserDao,
     private val firebaseService: FirebaseService,
+    private val dataStore: DataStore<Preferences>,
     networkUtil: NetworkUtil
 ) : BaseRepository(networkUtil) {
 
     private val TAG = "SyncRepository"
+    
+    // Hàm tạo key động theo userId để tránh lẫn dữ liệu khi đổi tài khoản
+    private fun getLastSyncKey(userId: String) = longPreferencesKey("last_sync_time_$userId")
 
+    /**
+     * Thực hiện đồng bộ toàn diện 2 chiều (Push trước, Pull sau).
+     * @throws Exception nếu có lỗi mạng hoặc quyền truy cập để SyncWorker thực hiện retry.
+     */
     suspend fun syncAll() {
         val userId = firebaseService.currentUserId ?: return
         
-        Log.d(TAG, "Starting full sync for user: $userId")
+        Log.d(TAG, ">>> Starting Full Sync for User: $userId")
 
+        try {
+            // Giai đoạn 1: PUSH (Local -> Remote)
+            // Đẩy tất cả thay đổi chưa được đồng bộ từ máy lên Firestore
+            pushLocalChanges(userId)
+
+            // Giai đoạn 2: PULL (Remote -> Local)
+            // Tải dữ liệu mới nhất từ Firestore về database local
+            pullRemoteData(userId)
+            
+            Log.d(TAG, ">>> Full sync completed successfully!")
+        } catch (e: Exception) {
+            Log.e(TAG, ">>> Sync failed: ${e.message}")
+            throw e // Rất quan trọng: Ném lỗi để SyncWorker biết và thực hiện Retry
+        }
+    }
+
+    private suspend fun pushLocalChanges(userId: String) {
+        Log.d(TAG, "Phase 1: Pushing local changes...")
         syncUserProfile(userId)
         syncVocabularySets(userId)
         syncWords(userId)
@@ -35,91 +66,116 @@ class SyncRepository @Inject constructor(
         syncStudySessions(userId)
         syncStreak(userId)
         syncNotifications(userId)
-        
-        Log.d(TAG, "Sync completed")
     }
+
+    private suspend fun pullRemoteData(userId: String) {
+        Log.d(TAG, "Phase 2: Pulling remote data (Delta Sync for user $userId)...")
+        
+        // Lấy key riêng của User này
+        val userSyncKey = getLastSyncKey(userId)
+        val lastSync = dataStore.data.first()[userSyncKey] ?: 0L
+        val currentSyncTime = System.currentTimeMillis()
+
+        val result = safeNetworkCall {
+
+            // 1. Pull User Profile (Luôn lấy mới nhất)
+            firebaseService.getUser(userId)?.let { remoteUser ->
+                userDao.upsertUser(remoteUser.toEntity().copy(isSynced = true))
+            }
+
+            // 2. Pull Vocabulary Sets
+            val remoteSets = firebaseService.getVocabularySets(userId, lastSync)
+            remoteSets.forEach { set ->
+                vocabularySetDao.insertSet(set.toEntity().copy(isSynced = true))
+            }
+
+            // 3. Pull Words
+            val remoteWords = firebaseService.getWords(userId, lastSync)
+            if (remoteWords.isNotEmpty()) {
+                wordDao.upsertWords(remoteWords.map { it.toEntity().copy(isSynced = true) })
+            }
+
+            // 4. Pull SRS Cards
+            val remoteCards = firebaseService.getSrsCards(userId, lastSync)
+            if (remoteCards.isNotEmpty()) {
+                srsCardDao.upsertCards(remoteCards.map { it.toEntity().copy(isSynced = true) })
+            }
+
+            // 5. Pull Study Sessions
+            val remoteSessions = firebaseService.getStudySessions(userId, lastSync)
+            remoteSessions.forEach { sess ->
+                studySessionDao.insertSession(sess.toEntity().copy(isSynced = true))
+            }
+
+            // 6. Pull Streak
+            firebaseService.getStreak(userId)?.let { remoteStreak ->
+                streakDao.insertStreak(remoteStreak.toEntity().copy(isSynced = true))
+            }
+
+            // 7. Pull Notifications
+            val remoteNotifs = firebaseService.getNotifications(userId, lastSync)
+            remoteNotifs.forEach { notif ->
+                notificationDao.insertNotification(notif.toEntity().copy(isSynced = true))
+            }
+
+            // Sau khi thành công, cập nhật mốc thời gian RIÊNG cho user này
+            dataStore.edit { prefs -> prefs[userSyncKey] = currentSyncTime }
+            Log.d(TAG, "Delta Sync finished for $userId. Key updated to: $currentSyncTime")
+        }
+        
+        result.getOrThrow()
+    }
+
+    // --- LOGIC ĐẨY DỮ LIỆU (PUSH) ---
 
     private suspend fun syncUserProfile(userId: String) {
         val user = userDao.getCurrentUser() ?: return
         if (user.userId == userId && !user.isSynced) {
-            val result = safeNetworkCall<Unit> {
-                firebaseService.saveUser(user.toDomain())
-            }
-            if (result.isSuccess) {
-                userDao.markUserAsSynced(userId)
-            }
+            safeNetworkCall { firebaseService.saveUser(user.toDomain()) }
+                .onSuccess { userDao.markUserAsSynced(userId) }
         }
     }
 
     private suspend fun syncVocabularySets(userId: String) {
-        val unsyncedSets = vocabularySetDao.getUnsyncedSets(userId)
-        unsyncedSets.forEach { entity ->
-            val result = safeNetworkCall<Unit> {
-                firebaseService.saveVocabularySet(entity.toDomain())
-            }
-            if (result.isSuccess) {
-                vocabularySetDao.markAsSynced(entity.setId)
-            }
+        vocabularySetDao.getUnsyncedSets(userId).forEach { entity ->
+            safeNetworkCall { firebaseService.saveVocabularySet(entity.toDomain()) }
+                .onSuccess { vocabularySetDao.markAsSynced(entity.setId) }
         }
     }
 
     private suspend fun syncWords(userId: String) {
-        val unsyncedWords = wordDao.getUnsyncedWords(userId)
-        unsyncedWords.forEach { entity ->
-            val result = safeNetworkCall<Unit> {
-                firebaseService.saveWord(entity.toDomain())
-            }
-            if (result.isSuccess) {
-                wordDao.markAsSynced(entity.wordId)
-            }
+        wordDao.getUnsyncedWords(userId).forEach { entity ->
+            safeNetworkCall { firebaseService.saveWord(entity.toDomain()) }
+                .onSuccess { wordDao.markAsSynced(entity.wordId) }
         }
     }
 
     private suspend fun syncSrsCards(userId: String) {
-        val unsyncedCards = srsCardDao.getUnsyncedCards(userId)
-        unsyncedCards.forEach { entity ->
-            val result = safeNetworkCall<Unit> {
-                firebaseService.saveSrsCard(entity.toDomain())
-            }
-            if (result.isSuccess) {
-                srsCardDao.markAsSynced(entity.cardId)
-            }
+        srsCardDao.getUnsyncedCards(userId).forEach { entity ->
+            safeNetworkCall { firebaseService.saveSrsCard(entity.toDomain()) }
+                .onSuccess { srsCardDao.markAsSynced(entity.cardId) }
         }
     }
 
     private suspend fun syncStudySessions(userId: String) {
-        val unsyncedSessions = studySessionDao.getUnsyncedSessions(userId)
-        unsyncedSessions.forEach { entity ->
-            val result = safeNetworkCall<Unit> {
-                firebaseService.saveStudySession(entity.toDomain())
-            }
-            if (result.isSuccess) {
-                studySessionDao.markAsSynced(entity.sessionId)
-            }
+        studySessionDao.getUnsyncedSessions(userId).forEach { entity ->
+            safeNetworkCall { firebaseService.saveStudySession(entity.toDomain()) }
+                .onSuccess { studySessionDao.markAsSynced(entity.sessionId) }
         }
     }
 
     private suspend fun syncStreak(userId: String) {
         val streak = streakDao.getStreak(userId) ?: return
         if (!streak.isSynced) {
-            val result = safeNetworkCall<Unit> {
-                firebaseService.saveStreak(streak.toDomain())
-            }
-            if (result.isSuccess) {
-                streakDao.markStreakAsSynced(userId)
-            }
+            safeNetworkCall { firebaseService.saveStreak(streak.toDomain()) }
+                .onSuccess { streakDao.markStreakAsSynced(userId) }
         }
     }
 
     private suspend fun syncNotifications(userId: String) {
-        val unsyncedNotifications = notificationDao.getUnsyncedNotifications(userId)
-        unsyncedNotifications.forEach { entity ->
-            val result = safeNetworkCall<Unit> {
-                firebaseService.saveNotification(entity.toDomain())
-            }
-            if (result.isSuccess) {
-                notificationDao.markAsSynced(entity.notificationId)
-            }
+        notificationDao.getUnsyncedNotifications(userId).forEach { entity ->
+            safeNetworkCall { firebaseService.saveNotification(entity.toDomain()) }
+                .onSuccess { notificationDao.markAsSynced(entity.notificationId) }
         }
     }
 }

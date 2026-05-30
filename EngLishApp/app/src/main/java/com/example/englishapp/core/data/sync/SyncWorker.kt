@@ -29,11 +29,14 @@ class SyncWorker @AssistedInject constructor(
     }
 
     companion object {
-        private const val SYNC_WORK_NAME = "MinLishSyncWork"
+        const val PERIODIC_SYNC_WORK_NAME = "MinLishSyncWork"
+        const val IMMEDIATE_SYNC_WORK_NAME = "OneTimeMinLishSync"
 
         fun schedule(context: Context) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
+                .setRequiresBatteryNotLow(true)
+                .setRequiresStorageNotLow(true)
                 .build()
 
             val syncRequest = PeriodicWorkRequestBuilder<SyncWorker>(1, TimeUnit.HOURS)
@@ -46,8 +49,8 @@ class SyncWorker @AssistedInject constructor(
                 .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                SYNC_WORK_NAME,
-                ExistingPeriodicWorkPolicy.KEEP,
+                PERIODIC_SYNC_WORK_NAME,
+                ExistingPeriodicWorkPolicy.UPDATE,
                 syncRequest
             )
         }
@@ -59,9 +62,16 @@ class SyncWorker @AssistedInject constructor(
 
             val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
                 .setConstraints(constraints)
+                // Kích hoạt Expedited để Android ưu tiên chạy ngay lập tức
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .build()
 
-            WorkManager.getInstance(context).enqueue(syncRequest)
+            // Sử dụng enqueueUniqueWork với REPLACE để tránh lặp task
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                IMMEDIATE_SYNC_WORK_NAME,
+                ExistingWorkPolicy.REPLACE,
+                syncRequest
+            )
         }
     }
 }

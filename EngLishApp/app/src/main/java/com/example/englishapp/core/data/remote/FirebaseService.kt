@@ -4,6 +4,8 @@ import com.example.englishapp.core.data.model.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.toObject
+import com.google.firebase.firestore.toObjects
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,7 +26,6 @@ class FirebaseService @Inject constructor(
 
     // User hiện tại
     val currentUserId: String? get() = auth.currentUser?.uid
-    val isLoggedIn: Boolean get() = auth.currentUser != null
 
     suspend fun saveVocabularySet(set: VocabularySet) {
         setsCollection.document(set.setId).set(set, SetOptions.merge()).await()
@@ -52,5 +53,52 @@ class FirebaseService @Inject constructor(
 
     suspend fun saveNotification(notification: Notification) {
         notificationsCollection.document(notification.notificationId).set(notification, SetOptions.merge()).await()
+    }
+
+    // --- PULL METHODS (Supporting Delta Sync) ---
+
+    suspend fun getVocabularySets(userId: String, since: Long = 0): List<VocabularySet> {
+        return setsCollection.whereEqualTo("userId", userId)
+            .whereGreaterThan("updatedAt", since)
+            .get().await()
+            .toObjects(VocabularySet::class.java)
+    }
+
+    suspend fun getWords(userId: String, since: Long = 0): List<Word> {
+        return wordsCollection.whereEqualTo("userId", userId)
+            .whereGreaterThan("updatedAt", since)
+            .get().await()
+            .toObjects(Word::class.java)
+    }
+
+    suspend fun getSrsCards(userId: String, since: Long = 0): List<SrsCard> {
+        return srsCardsCollection.whereEqualTo("userId", userId)
+            .whereGreaterThan("updatedAt", since)
+            .get().await()
+            .toObjects(SrsCard::class.java)
+    }
+
+    suspend fun getStudySessions(userId: String, since: Long = 0): List<StudySession> {
+        return sessionsCollection.whereEqualTo("userId", userId)
+            .whereGreaterThan("updatedAt", since)
+            .get().await()
+            .toObjects(StudySession::class.java)
+    }
+
+    suspend fun getStreak(userId: String): Streak? {
+        return streaksCollection.document(userId).get().await()
+            .toObject(Streak::class.java)
+    }
+
+    suspend fun getNotifications(userId: String, since: Long = 0): List<Notification> {
+        return notificationsCollection.whereEqualTo("userId", userId)
+            .whereGreaterThan("updatedAt", since)
+            .get().await()
+            .toObjects(Notification::class.java)
+    }
+
+    suspend fun getUser(userId: String): User? {
+        return usersCollection.document(userId).get().await()
+            .toObject(User::class.java)
     }
 }

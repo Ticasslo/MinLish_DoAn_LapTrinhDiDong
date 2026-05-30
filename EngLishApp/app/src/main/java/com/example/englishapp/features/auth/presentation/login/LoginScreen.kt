@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.englishapp.core.data.sync.SyncWorker
 import com.example.englishapp.features.auth.domain.model.AuthResult
 import com.example.englishapp.features.auth.presentation.viewmodel.AuthViewModel
 
@@ -66,14 +67,16 @@ fun LoginScreen(
         }
     }
 
+    val isLoading = uiState.isLoading
+
     LaunchedEffect(authState) {
         when (authState) {
             is AuthResult.Success -> {
-                onLoginSuccess((authState as AuthResult.Success).data)
+                onLoginSuccess(authState.data)
                 viewModel.resetState()
             }
             is AuthResult.Error -> {
-                Toast.makeText(context, (authState as AuthResult.Error).message, Toast.LENGTH_LONG).show()
+                Toast.makeText(context, authState.message, Toast.LENGTH_LONG).show()
                 viewModel.resetState()
             }
             else -> {}
@@ -103,7 +106,7 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             singleLine = true,
-            enabled = authState !is AuthResult.Loading,
+            enabled = !isLoading,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = MaterialTheme.colorScheme.onBackground,
                 unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
@@ -125,7 +128,7 @@ fun LoginScreen(
             shape = RoundedCornerShape(12.dp),
             singleLine = true,
             visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            enabled = authState !is AuthResult.Loading,
+            enabled = !isLoading,
             trailingIcon = {
                 val icon = if (isPasswordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility
                 IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
@@ -170,9 +173,9 @@ fun LoginScreen(
             },
             modifier = Modifier.fillMaxWidth().height(50.dp),
             shape = RoundedCornerShape(12.dp),
-            enabled = authState !is AuthResult.Loading
+            enabled = !isLoading
         ) {
-            if (authState is AuthResult.Loading) {
+            if (isLoading) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
             } else {
                 Text(
@@ -189,6 +192,7 @@ fun LoginScreen(
             onClick = { launcher.launch(googleSignInClient.signInIntent) },
             modifier = Modifier.fillMaxWidth().height(50.dp),
             shape = RoundedCornerShape(12.dp),
+            enabled = !isLoading,
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.onSurface
             )

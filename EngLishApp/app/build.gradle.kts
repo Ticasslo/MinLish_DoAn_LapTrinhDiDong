@@ -98,6 +98,6 @@ dependencies {
     ksp(libs.hilt.worker.compiler)
     implementation(libs.coil.compose)
     implementation(libs.lottie.compose)
-
+    implementation("androidx.lifecycle:lifecycle-process:2.8.0")
     implementation("com.google.android.gms:play-services-auth:21.3.0")
 }

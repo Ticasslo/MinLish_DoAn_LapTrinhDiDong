@@ -17,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.englishapp.features.splash.presentation.viewmodel.SplashViewModel
+import com.example.englishapp.core.ui.theme.EngLishAppTheme
 import kotlinx.coroutines.delay
 
 @Composable
@@ -89,7 +90,7 @@ fun SplashScreen(
 @Preview(showBackground = true)
 @Composable
 fun SplashPreview() {
-    _root_ide_package_.com.example.englishapp.core.ui.theme.EngLishAppTheme {
+    EngLishAppTheme {
         SplashScreen(onTimeout = {})
     }
 }
