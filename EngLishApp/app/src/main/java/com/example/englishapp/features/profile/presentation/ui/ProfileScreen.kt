@@ -33,6 +33,8 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.englishapp.R
+import com.example.englishapp.core.ui.components.MainBottomBar
+import com.example.englishapp.core.ui.components.NavItem
 import com.example.englishapp.features.profile.presentation.viewmodel.ProfileViewModel
 
 // =============================================================================
@@ -100,10 +102,10 @@ fun ProfileScreen(
 
     // 5. Chuẩn bị danh sách các nút điều hướng ở thanh Bottom Bar
     val navItems = listOf(
-        Icons.Outlined.Home to stringResource(R.string.nav_home),
-        Icons.AutoMirrored.Outlined.MenuBook to stringResource(R.string.nav_library),
-        Icons.Outlined.BarChart to stringResource(R.string.nav_progress),
-        Icons.Filled.Person to stringResource(R.string.nav_profile)
+        NavItem(Icons.Outlined.Home, stringResource(R.string.nav_home)),
+        NavItem(Icons.AutoMirrored.Outlined.MenuBook, stringResource(R.string.nav_library)),
+        NavItem(Icons.Outlined.BarChart, stringResource(R.string.nav_progress)),
+        NavItem(Icons.Outlined.Person, stringResource(R.string.nav_profile))
     )
 
     // Chuẩn bị các nút tính năng trong phần Cài đặt Tài khoản
@@ -111,7 +113,8 @@ fun ProfileScreen(
         AccountMenuItem(Icons.Outlined.Lock, "Đổi mật khẩu", onClick = onSettingsClick),
         AccountMenuItem(Icons.Outlined.Flag, "Mục tiêu học tập"),
         AccountMenuItem(Icons.Outlined.Star, "Trình độ hiện tại"),
-        AccountMenuItem(Icons.Outlined.Download, "Xuất dữ liệu")
+        AccountMenuItem(Icons.Outlined.Download, "Xuất dữ liệu"),
+        AccountMenuItem(Icons.Outlined.Science, "Tạo dữ liệu Test", onClick = { viewModel.generateTestData() })
     )
 
     // 6. Dựng bố cục màn hình Profile bằng Scaffold
@@ -126,61 +129,75 @@ fun ProfileScreen(
         },
         bottomBar = {
             // Hàm vẽ thanh điều hướng dưới cùng (với tab Hồ sơ được chọn sẵn ở vị trí số 4)
-            ProfileBottomBar(
+            MainBottomBar(
                 navItems = navItems,
                 selectedIndex = 3,
                 onItemClick = onNavItemClick
             )
         }
     ) { innerPadding ->
-        // Nội dung chính cuộn dọc bằng Column và verticalScroll
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState()) // Bật tính năng cuộn
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 32.dp)
-        ) {
-            Spacer(modifier = Modifier.height(24.dp))
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Nội dung chính cuộn dọc bằng Column và verticalScroll
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState()) // Bật tính năng cuộn
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 32.dp)
+            ) {
+                Spacer(modifier = Modifier.height(24.dp))
 
-            // Khu vực 1: Hiển thị Avatar, Tên, Email và các Chip cấp độ/mục tiêu
-            UserInfoSection(
-                userName = userName,
-                userEmail = userEmail,
-                userLevel = userLevel,
-                userGoal = userGoal,
-                avatarUrl = avatarUrl,
-                onEditAvatarClick = { 
-                    photoPickerLauncher.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
+                // Khu vực 1: Hiển thị Avatar, Tên, Email và các Chip cấp độ/mục tiêu
+                UserInfoSection(
+                    userName = userName,
+                    userEmail = userEmail,
+                    userLevel = userLevel,
+                    userGoal = userGoal,
+                    avatarUrl = avatarUrl,
+                    onEditAvatarClick = { 
+                        photoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Khu vực 2: Khối cấu hình thiết lập học tập (số từ/ngày, thời gian nhắc nhở)
+                StudySettingsSection(
+                    dailyGoal = dailyGoal,
+                    onGoalChange = { dailyGoal = it },
+                    notificationTime = notificationTime,
+                    onTimeClick = { showTimePicker = true },
+                    pushEnabled = pushEnabled,
+                    onPushToggle = { pushEnabled = it },
+                    emailEnabled = emailEnabled,
+                    onEmailToggle = { emailEnabled = it }
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Khu vực 3: Khối chứa các tùy chọn thông tin tài khoản (như đổi mật khẩu)
+                AccountSection(items = accountItems)
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Khu vực 4: Nút màu đỏ thực hiện Đăng xuất tài khoản
+                LogoutButton(onClick = { viewModel.logout() })
+            }
+
+            if (uiState.isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.3f))
+                        .clickable(enabled = false) {},
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Khu vực 2: Khối cấu hình thiết lập học tập (số từ/ngày, thời gian nhắc nhở)
-            StudySettingsSection(
-                dailyGoal = dailyGoal,
-                onGoalChange = { dailyGoal = it },
-                notificationTime = notificationTime,
-                onTimeClick = { showTimePicker = true },
-                pushEnabled = pushEnabled,
-                onPushToggle = { pushEnabled = it },
-                emailEnabled = emailEnabled,
-                onEmailToggle = { emailEnabled = it }
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Khu vực 3: Khối chứa các tùy chọn thông tin tài khoản (như đổi mật khẩu)
-            AccountSection(items = accountItems)
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Khu vực 4: Nút màu đỏ thực hiện Đăng xuất tài khoản
-            LogoutButton(onClick = { viewModel.logout() })
+            }
         }
     }
 
@@ -691,54 +708,4 @@ private fun LogoutButton(onClick: () -> Unit) {
     }
 }
 
-/**
- * Thanh điều hướng dưới cùng (Bottom Navigation) dành riêng cho Hồ sơ
- */
-@Composable
-private fun ProfileBottomBar(
-    navItems: List<Pair<ImageVector, String>>,
-    selectedIndex: Int,
-    onItemClick: (Int) -> Unit
-) {
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 8.dp,
-        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding() // Đệm thanh điều hướng hệ thống
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            navItems.forEachIndexed { index, (icon, label) ->
-                val isSelected = index == selectedIndex
-                
-                Column(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .then(
-                            if (isSelected) Modifier.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f))
-                            else Modifier
-                        )
-                        .clickable { onItemClick(index) }
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = label,
-                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-    }
-}
+

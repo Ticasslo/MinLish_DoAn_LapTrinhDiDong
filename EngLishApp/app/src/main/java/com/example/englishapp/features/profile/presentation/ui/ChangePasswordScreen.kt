@@ -36,6 +36,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.englishapp.R
 import com.example.englishapp.features.auth.domain.model.AuthResult
 import com.example.englishapp.features.profile.presentation.viewmodel.ProfileViewModel
+import com.example.englishapp.core.ui.components.MainBottomBar
+import com.example.englishapp.core.ui.components.NavItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,10 +79,10 @@ fun ChangePasswordScreen(
     }
 
     val navItems = listOf(
-        Icons.Outlined.Home to stringResource(R.string.nav_home),
-        Icons.AutoMirrored.Outlined.MenuBook to stringResource(R.string.nav_library),
-        Icons.Outlined.BarChart to stringResource(R.string.nav_progress),
-        Icons.Filled.Person to stringResource(R.string.nav_profile)
+        NavItem(Icons.Outlined.Home, stringResource(R.string.nav_home)),
+        NavItem(Icons.AutoMirrored.Outlined.MenuBook, stringResource(R.string.nav_library)),
+        NavItem(Icons.Outlined.BarChart, stringResource(R.string.nav_progress)),
+        NavItem(Icons.Outlined.Person, stringResource(R.string.nav_profile))
     )
 
     Scaffold(
@@ -89,7 +91,7 @@ fun ChangePasswordScreen(
             ChangePasswordTopBar(onBackClick = onBackClick)
         },
         bottomBar = {
-            ChangePasswordBottomBar(
+            MainBottomBar(
                 navItems = navItems,
                 selectedIndex = 3,
                 onItemClick = onNavItemClick,
@@ -321,54 +323,6 @@ private fun ChangePasswordTopBar(onBackClick: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
             )
-        }
-    }
-}
-
-@Composable
-private fun ChangePasswordBottomBar(
-    navItems: List<Pair<ImageVector, String>>,
-    selectedIndex: Int,
-    onItemClick: (Int) -> Unit,
-) {
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 8.dp,
-        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-        ) {
-            navItems.forEachIndexed { index, (icon, label) ->
-                val isSelected = index == selectedIndex
-                Column(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .then(
-                            if (isSelected) Modifier.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f))
-                            else Modifier
-                        )
-                        .clickable { onItemClick(index) }
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = label,
-                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp),
-                    )
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
         }
     }
 }
