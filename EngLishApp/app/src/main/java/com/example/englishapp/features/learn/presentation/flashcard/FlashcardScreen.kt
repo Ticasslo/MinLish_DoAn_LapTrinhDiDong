@@ -118,7 +118,7 @@ fun FlashcardScreen(
 
             if (uiState.isLoading) {
                 CircularProgressIndicator()
-            } else if (uiState.cards.isNotEmpty()) {
+            } else if (uiState.cards.isNotEmpty() && uiState.currentIndex < uiState.cards.size) {
                 val currentPair = uiState.cards[uiState.currentIndex]
                 val word = currentPair.second
 

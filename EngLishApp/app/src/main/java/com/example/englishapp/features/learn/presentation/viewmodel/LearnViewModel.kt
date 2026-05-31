@@ -53,18 +53,20 @@ class LearnViewModel @Inject constructor(
             
             try {
                 if (mode == "review") {
-                    getDueCardsUseCase(userId, setId).collect { dueCards ->
-                        val cardsWithWords = dueCards.mapNotNull { card ->
-                            val word = repository.getWordById(card.wordId)
-                            if (word != null) card to word else null
-                        }
-                        _uiState.update { 
-                            it.copy(
-                                isLoading = false, 
-                                cards = cardsWithWords,
-                                isSessionComplete = cardsWithWords.isEmpty() && it.currentIndex > 0
-                            ) 
-                        }
+                    // SỬA: Dùng first() để lấy danh sách thẻ cần ôn một lần duy nhất khi bắt đầu.
+                    // Không dùng collect() vì mỗi khi cập nhật thẻ vào DB, Flow sẽ phát ra list mới (thiếu thẻ vừa học),
+                    // dẫn đến lệch currentIndex và gây crash IndexOutOfBounds.
+                    val dueCards = getDueCardsUseCase(userId, setId).first()
+                    val cardsWithWords = dueCards.mapNotNull { card ->
+                        val word = repository.getWordById(card.wordId)
+                        if (word != null) card to word else null
+                    }
+                    _uiState.update { 
+                        it.copy(
+                            isLoading = false, 
+                            cards = cardsWithWords,
+                            isSessionComplete = cardsWithWords.isEmpty()
+                        )
                     }
                 } else {
                     // Chế độ học từ mới
