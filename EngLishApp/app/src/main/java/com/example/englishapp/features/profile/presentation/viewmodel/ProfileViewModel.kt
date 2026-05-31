@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.englishapp.core.util.ThemeManager
+import com.example.englishapp.core.util.TestDataGenerator
+import com.example.englishapp.core.data.repository.SyncRepository
 
 data class ProfileUiState(
     val user: User? = null,
@@ -29,7 +31,9 @@ class ProfileViewModel @Inject constructor(
     private val logoutUseCase: LogoutUseCase,
     private val changePasswordUseCase: ChangePasswordUseCase,
     private val authRepository: IAuthRepository,
-    private val themeManager: ThemeManager
+    private val themeManager: ThemeManager,
+    private val testDataGenerator: TestDataGenerator,
+    private val syncRepository: SyncRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -61,8 +65,13 @@ class ProfileViewModel @Inject constructor(
 
     fun logout() {
         viewModelScope.launch {
-            logoutUseCase()
-            _uiState.update { it.copy(isLoggedOut = true) }
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                logoutUseCase()
+                _uiState.update { it.copy(isLoggedOut = true, isLoading = false) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = "Đăng xuất thất bại: ${e.message}", isLoading = false) }
+            }
         }
     }
 
@@ -120,6 +129,28 @@ class ProfileViewModel @Inject constructor(
                     }
                     is AuthResult.Loading -> { /* ignore */ }
                 }
+            }
+        }
+    }
+
+    fun generateTestData() {
+        val userId = _uiState.value.user?.userId ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                // 1. Ghi dữ liệu vào Firebase (có bước xóa cũ bên trong TestDataGenerator)
+                testDataGenerator.generateTestData(userId)
+                
+                // 2. Xóa sạch Local Cache để đảm bảo dữ liệu mới nhất được kéo về từ Firebase
+                authRepository.clearLocalData()
+                
+                // 3. Chạy đồng bộ để kéo dữ liệu từ Firebase về Local (Room)
+                syncRepository.syncAll()
+                
+                // 4. Làm mới User UI
+                loadUserData()
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message, isLoading = false) }
             }
         }
     }

@@ -40,4 +40,7 @@ interface IAuthRepository {
 
     // Cập nhật ảnh đại diện
     fun updateUserAvatar(avatarUrl: String): Flow<AuthResult<Unit>>
+
+    // Xóa sạch dữ liệu local (không logout)
+    suspend fun clearLocalData()
 }

@@ -17,11 +17,13 @@ import com.example.englishapp.features.auth.domain.repository.IAuthRepository
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.GoogleAuthProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class AuthRepository @Inject constructor(
@@ -95,19 +97,26 @@ class AuthRepository @Inject constructor(
     }
 
     override suspend fun logout() {
-        // 1. Hủy tất cả các tác vụ đồng bộ đang chạy hoặc đang chờ bằng Unique Name
-        val workManager = androidx.work.WorkManager.getInstance(context)
-        workManager.cancelUniqueWork(SyncWorker.PERIODIC_SYNC_WORK_NAME)
-        workManager.cancelUniqueWork(SyncWorker.IMMEDIATE_SYNC_WORK_NAME)
-        
-        // 2. Đăng xuất Firebase
-        firebaseService.auth.signOut()
-        
-        // 3. Xóa sạch Database Local để bảo mật thông tin user cũ
-        appDatabase.clearAllTables()
+        withContext(Dispatchers.IO) {
+            try {
+                // 1. Hủy tất cả các tác vụ đồng bộ đang chạy hoặc đang chờ bằng Unique Name
+                val workManager = androidx.work.WorkManager.getInstance(context)
+                workManager.cancelUniqueWork(SyncWorker.PERIODIC_SYNC_WORK_NAME)
+                workManager.cancelUniqueWork(SyncWorker.IMMEDIATE_SYNC_WORK_NAME)
+                
+                // 2. Đăng xuất Firebase
+                firebaseService.auth.signOut()
+                
+                // 3. Xóa các mốc thời gian đồng bộ trong DataStore
+                dataStore.edit { it.clear() }
 
-        // 4. Xóa các mốc thời gian đồng bộ trong DataStore để khi user khác (hoặc user cũ) login lại sẽ sync toàn bộ
-        dataStore.edit { it.clear() }
+                // 4. Xóa sạch Database Local để bảo mật thông tin user cũ
+                appDatabase.clearAllTables()
+            } catch (e: Exception) {
+                // Log lỗi hoặc xử lý nếu cần
+                e.printStackTrace()
+            }
+        }
     }
 
     override fun observeCurrentUser(): Flow<User?> {
@@ -314,6 +323,32 @@ class AuthRepository @Inject constructor(
             }
         } catch (e: Exception) {
             emit(AuthResult.Error(e.message ?: "Cập nhật ảnh đại diện thất bại"))
+        }
+    }
+
+    override suspend fun clearLocalData() {
+        withContext(Dispatchers.IO) {
+            try {
+                // 1. Xóa các mốc thời gian đồng bộ trong DataStore
+                dataStore.edit { it.clear() }
+
+                // 2. Xóa sạch Database Local (Room)
+                appDatabase.clearAllTables()
+                
+                // 3. Re-insert current user to keep session
+                val firebaseUser = firebaseService.auth.currentUser
+                if (firebaseUser != null) {
+                    val uid = firebaseUser.uid
+                    // Try to fetch from Firestore to restore local User object
+                    val doc = firebaseService.usersCollection.document(uid).get().await()
+                    val userData = doc.toObject(User::class.java)
+                    if (userData != null) {
+                        userDao.upsertUser(userData.toEntity().copy(isSynced = true))
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }

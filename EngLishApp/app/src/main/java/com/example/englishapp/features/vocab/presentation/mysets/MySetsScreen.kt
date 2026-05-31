@@ -33,9 +33,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.englishapp.R
 import com.example.englishapp.core.data.model.VocabularySet
 import com.example.englishapp.features.vocab.presentation.viewmodel.SetsViewModel
-
-// Đối tượng đại diện cho một nút bấm trên thanh điều hướng dưới cùng (Bottom Nav)
-private data class NavItem(val icon: ImageVector, val label: String)
+import com.example.englishapp.core.ui.components.MainBottomBar
+import com.example.englishapp.core.ui.components.NavItem
 
 /**
  * Màn hình quản lý bộ từ vựng cá nhân của người dùng (Library)
@@ -68,7 +67,7 @@ fun MySetsScreen(
             MySetsTopBar()
         },
         bottomBar = {
-            MySetsBottomBar(
+            MainBottomBar(
                 navItems = navItems,
                 selectedIndex = 1, // Vị trí Thư viện (Library)
                 onItemClick = onNavItemClick
@@ -471,54 +470,3 @@ private fun EmptySetsView(onCreateClick: () -> Unit) {
     }
 }
 
-/**
- * Thanh Bottom Navigation chung cho module Library/Vocabulary
- */
-@Composable
-private fun MySetsBottomBar(
-    navItems: List<NavItem>,
-    selectedIndex: Int,
-    onItemClick: (Int) -> Unit
-) {
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 8.dp,
-        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            navItems.forEachIndexed { index, item ->
-                val isSelected = index == selectedIndex
-                
-                Column(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .then(
-                            if (isSelected) Modifier.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f))
-                            else Modifier
-                        )
-                        .clickable { onItemClick(index) }
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.label,
-                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Text(
-                        text = item.label,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-    }
-}

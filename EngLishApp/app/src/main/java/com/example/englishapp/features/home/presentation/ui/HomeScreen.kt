@@ -35,14 +35,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.englishapp.R
+import com.example.englishapp.core.ui.components.MainBottomBar
+import com.example.englishapp.core.ui.components.NavItem
 import com.example.englishapp.features.home.domain.model.HomeNewWordDeck
 import com.example.englishapp.features.home.domain.model.HomeRecentDeck
 import com.example.englishapp.features.home.domain.model.HomeReviewDeck
 import com.example.englishapp.features.home.presentation.viewmodel.HomeViewModel
-
-// Đối tượng đại diện cho một nút bấm trên thanh điều hướng dưới cùng (Bottom Nav)
-data class NavItem(val icon: ImageVector, val label: String)
-
 
 // =============================================================================
 // MÀN HÌNH CHÍNH (HOMESCREEN COMPOSABLE)
@@ -103,7 +101,7 @@ fun HomeScreen(
         },
         bottomBar = {
             // Gọi hàm vẽ thanh điều hướng dưới cùng của màn hình
-            HomeBottomBar(
+            MainBottomBar(
                 navItems = navItems,
                 selectedIndex = selectedNav,
                 onItemClick = { index ->
@@ -715,59 +713,6 @@ private fun RecentSection(
         }
     }
 }
-
-/**
- * Thanh điều hướng dưới cùng (Bottom Navigation Bar)
- */
-@Composable
-private fun HomeBottomBar(
-    navItems: List<NavItem>,
-    selectedIndex: Int,
-    onItemClick: (Int) -> Unit
-) {
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 8.dp, // Đổ bóng cao để tách biệt khỏi nội dung phía sau
-        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp) // Bo tròn nhẹ 2 góc trên
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding() // Tránh đè lên thanh điều hướng của hệ điều hành Android
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            navItems.forEachIndexed { index, item ->
-                val isSelected = index == selectedIndex
-                
-                Column(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .then(
-                            if (isSelected) Modifier.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f))
-                            else Modifier
-                        )
-                        .clickable { onItemClick(index) }
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.label,
-                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Text(
-                        text = item.label,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-    }
-}
-
 
 // =============================================================================
 // HÀM TIỆN ÍCH (UTILITY FUNCTIONS)

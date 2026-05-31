@@ -30,10 +30,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.englishapp.R
+import com.example.englishapp.core.ui.components.MainBottomBar
+import com.example.englishapp.core.ui.components.NavItem
 import com.example.englishapp.core.ui.theme.*
 import com.example.englishapp.features.progress.domain.model.DailyActivity
 import com.example.englishapp.features.progress.domain.model.SetRetention
 import com.example.englishapp.features.progress.presentation.viewmodel.ProgressViewModel
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,12 +49,12 @@ fun ProgressScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // Danh sách nút điều hướng dưới đáy màn hình
+    // Danh sách nút điều hướng đồng bộ với HomeScreen và ProfileScreen
     val navItems = listOf(
-        Pair(Icons.Outlined.Home, "Trang chủ"),
-        Pair(Icons.AutoMirrored.Outlined.MenuBook, "Thư viện"),
-        Pair(Icons.Outlined.BarChart, "Tiến độ"),
-        Pair(Icons.Outlined.Person, "Hồ sơ")
+        NavItem(Icons.Outlined.Home, stringResource(R.string.nav_home)),
+        NavItem(Icons.AutoMirrored.Outlined.MenuBook, stringResource(R.string.nav_library)),
+        NavItem(Icons.Outlined.BarChart, stringResource(R.string.nav_progress)),
+        NavItem(Icons.Outlined.Person, stringResource(R.string.nav_profile))
     )
 
     Scaffold(
@@ -78,9 +82,9 @@ fun ProgressScreen(
             )
         },
         bottomBar = {
-            ProgressBottomBar(
+            MainBottomBar(
                 navItems = navItems,
-                selectedIndex = 3, // Vị trí Tiến độ
+                selectedIndex = 2, // Vị trí Tiến độ là index 2 trong danh sách 4 item
                 onItemClick = onNavItemClick
             )
         },
@@ -530,57 +534,5 @@ fun RetentionItem(retention: SetRetention) {
 fun ProgressScreenPreview() {
     EngLishAppTheme {
         ProgressScreen()
-    }
-}
-
-/**
- * Thanh Bottom Navigation cho màn hình Tiến độ
- */
-@Composable
-private fun ProgressBottomBar(
-    navItems: List<Pair<ImageVector, String>>,
-    selectedIndex: Int,
-    onItemClick: (Int) -> Unit
-) {
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 8.dp,
-        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            navItems.forEachIndexed { index, item ->
-                val isSelected = index == selectedIndex
-                
-                Column(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .then(
-                            if (isSelected) Modifier.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f))
-                            else Modifier
-                        )
-                        .clickable { onItemClick(index) }
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        imageVector = item.first,
-                        contentDescription = item.second,
-                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Text(
-                        text = item.second,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
     }
 }
