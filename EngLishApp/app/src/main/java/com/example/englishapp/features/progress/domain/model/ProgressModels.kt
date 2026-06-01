@@ -15,14 +15,14 @@ data class DailyActivity(
 )
 
 data class WordStatus(
-    val total: Int = 0,
-    val mastered: Int = 0,
-    val learning: Int = 0,
-    val new: Int = 0
+    val total: Int = 0, // Tổng số từ vựng
+    val mastered: Int = 0, // Từ vựng đã học
+    val learning: Int = 0, // Từ vựng đang học
+    val new: Int = 0 // Từ vựng mới
 )
 
 data class SetRetention(
     val setName: String,
-    val retentionRate: Int, // 0 to 100
+    val retentionRate: Int, // Từ vựng đã học trên tổng số từ vựng
     val iconType: String // e.g., "business", "travel", "academic"
 )
