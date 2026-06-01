@@ -342,17 +342,28 @@ fun ActivityBar(modifier: Modifier, activity: DailyActivity) {
 
     Column(
         modifier = modifier.fillMaxHeight(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Bottom
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // 1. Khu vực thanh Bar: Dùng weight(1f) để chiếm phần không gian phía trên label
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(animatedHeight.coerceAtLeast(0.05f))
-                .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                .background(if (activity.isToday) PrimaryLight else SurfaceVariantLight)
-        )
+                .weight(1f),
+            contentAlignment = Alignment.BottomCenter // Luôn bắt đầu vẽ từ đáy của khu vực này đi lên
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(animatedHeight.coerceAtLeast(0.05f)) // Cao tối đa 100% của phần weight(1f)
+                    .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                    .background(if (activity.isToday) PrimaryLight else SurfaceVariantLight)
+            )
+        }
+
+        // 2. Khoảng cách cố định
         Spacer(modifier = Modifier.height(8.dp))
+
+        // 3. Nhãn ngày tháng ở dưới cùng
         Text(
             text = activity.dayName,
             style = Typography.labelSmall.copy(

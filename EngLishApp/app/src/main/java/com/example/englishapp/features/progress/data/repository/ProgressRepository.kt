@@ -3,6 +3,7 @@ package com.example.englishapp.features.progress.data.repository
 import com.example.englishapp.core.data.local.dao.SrsCardDao
 import com.example.englishapp.core.data.local.dao.StreakDao
 import com.example.englishapp.core.data.local.dao.StudySessionDao
+import com.example.englishapp.core.data.local.dao.UserDao
 import com.example.englishapp.core.data.local.dao.VocabularySetDao
 import com.example.englishapp.features.progress.domain.model.*
 import com.example.englishapp.features.progress.domain.repository.IProgressRepository
@@ -14,14 +15,14 @@ class ProgressRepository @Inject constructor(
     private val streakDao: StreakDao,
     private val studySessionDao: StudySessionDao,
     private val vocabularySetDao: VocabularySetDao,
-    private val srsCardDao: SrsCardDao
+    private val srsCardDao: SrsCardDao,
+    private val userDao: UserDao
 ) : IProgressRepository {
 
     override fun getOverallStats(userId: String): Flow<ProgressStats> {
         return combine(
             flow { emit(streakDao.getStreak(userId)?.currentStreak ?: 0) },
             srsCardDao.getAllCards(userId).map { it.size },
-            // Accuracy is tricky, let's average from study sessions
             studySessionDao.getSessionsByUserId(userId).map { sessions ->
                 if (sessions.isEmpty()) 0 
                 else (sessions.sumOf { it.accuracy } / sessions.size).toInt()
@@ -43,20 +44,26 @@ class ProgressRepository @Inject constructor(
         calendar.set(Calendar.MINUTE, 0)
         calendar.set(Calendar.SECOND, 0)
         calendar.set(Calendar.MILLISECOND, 0)
-        
-        // Go back 6 days to get a 7-day range including today
+
+        // Mốc kết thúc: Cuối ngày hôm nay
         val end = calendar.timeInMillis + 24 * 60 * 60 * 1000 - 1
-        calendar.add(Calendar.DAY_OF_YEAR, -6)
+
+        // Mốc bắt đầu: Tìm về Thứ 2 của tuần này
+        val daysToSubtract = (calendar.get(Calendar.DAY_OF_WEEK) - Calendar.MONDAY + 7) % 7
+        calendar.add(Calendar.DAY_OF_YEAR, -daysToSubtract)
         val start = calendar.timeInMillis
 
-        return studySessionDao.getSessionsInRange(userId, start, end).map { sessions ->
+        // Kết hợp luồng dữ liệu Sessions và luồng dữ liệu User
+        return combine(
+            studySessionDao.getSessionsInRange(userId, start, end),
+            userDao.getUserById(userId).map { it?.dailyGoal ?: 50 } // Lấy dailyGoal, mặc định là 50 nếu null
+        ) { sessions, dailyGoal ->
             val activityMap = sessions.groupBy { session ->
                 val cal = Calendar.getInstance()
                 cal.timeInMillis = session.date
                 cal.get(Calendar.DAY_OF_WEEK)
             }.mapValues { entry ->
-                // Activity level based on words studied, say max is 50 words for 100%
-                (entry.value.sumOf { it.wordsStudied }.toFloat() / 50f).coerceIn(0f, 1f)
+                (entry.value.sumOf { it.wordsStudied }.toFloat() / dailyGoal.toFloat()).coerceIn(0f, 1f)
             }
 
             val days = listOf(
@@ -71,10 +78,6 @@ class ProgressRepository @Inject constructor(
 
             val currentDay = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
 
-            // Reorder days to end with today? Design shows T2 to CN.
-            // Let's just follow the design's fixed order if possible, or relative to today.
-            // HTML shows: T2, T3, T4 (Today), T5, T6, T7, CN
-            
             days.map { (dayInt, dayName) ->
                 DailyActivity(
                     dayName = dayName,
@@ -98,11 +101,7 @@ class ProgressRepository @Inject constructor(
 
     override fun getRetentionRates(userId: String): Flow<List<SetRetention>> {
         return vocabularySetDao.observeSets(userId).map { sets ->
-            sets.take(3).map { set -> // HTML shows top 3
-                // For retention, we'll use a mock calculation or accuracy if available
-                // Let's use accuracy from sessions for this set if possible, 
-                // but VocabularySetEntity doesn't have accuracy.
-                // We'll calculate it based on mastered / total for now as a proxy for "retention"
+            sets.take(3).map { set ->
                 val rate = if (set.wordCount > 0) (set.masteredCount * 100 / set.wordCount) else 0
                 SetRetention(
                     setName = set.name,
@@ -125,7 +124,6 @@ class ProgressRepository @Inject constructor(
     }
 
     private fun calculateLevelProgress(totalWords: Int): Float {
-        // Mock progression within B1 for example
         return (totalWords % 500).toFloat() / 500f
     }
 
