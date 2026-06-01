@@ -41,7 +41,6 @@ fun AddWordBottomSheet(
     var pronVal by remember { mutableStateOf(initialPhonetic) }
     var descVal by remember { mutableStateOf(initialDescription) }
     var examVal by remember { mutableStateOf(initialExample) }
-    
     var isLookingUp by remember { mutableStateOf(false) }
 
     ModalBottomSheet(

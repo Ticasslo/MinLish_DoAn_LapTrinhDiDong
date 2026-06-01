@@ -32,6 +32,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.example.englishapp.R
 import com.example.englishapp.core.ui.components.MainBottomBar
 import com.example.englishapp.core.ui.components.NavItem
@@ -63,12 +65,29 @@ fun ProfileScreen(
     val uiState by viewModel.uiState.collectAsState()
     val user = uiState.user
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     // Khai báo launcher để chọn ảnh đại diện từ thư viện
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
-            uri?.let {
-                viewModel.updateAvatar(it.toString())
+            uri?.let { sourceUri ->
+                coroutineScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                    try {
+                        val inputStream = context.contentResolver.openInputStream(sourceUri)
+                        val outputFile = java.io.File(context.filesDir, "avatar_${System.currentTimeMillis()}.jpg")
+                        val outputStream = java.io.FileOutputStream(outputFile)
+                        inputStream?.copyTo(outputStream)
+                        inputStream?.close()
+                        outputStream.close()
+                        
+                        withContext(kotlinx.coroutines.Dispatchers.Main) {
+                            viewModel.updateAvatar(outputFile.absolutePath)
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
             }
         }
     )
@@ -108,7 +127,6 @@ fun ProfileScreen(
 
     // Chuẩn bị các nút tính năng trong phần Cài đặt Tài khoản
     val accountItems = listOf(
-        AccountMenuItem(Icons.Outlined.Lock, "Đổi mật khẩu", onClick = onSettingsClick),
         AccountMenuItem(Icons.Outlined.Flag, "Mục tiêu học tập"),
         AccountMenuItem(Icons.Outlined.Star, "Trình độ hiện tại"),
         AccountMenuItem(Icons.Outlined.Download, "Xuất dữ liệu"),
@@ -165,10 +183,16 @@ fun ProfileScreen(
                 StudySettingsSection(
                     dailyGoal = dailyGoal,
                     onGoalChange = { dailyGoal = it },
+                    onGoalChangeFinished = {
+                        viewModel.updateSettings(dailyGoal.toInt(), notificationTime, pushEnabled)
+                    },
                     notificationTime = notificationTime,
                     onTimeClick = { showTimePicker = true },
                     pushEnabled = pushEnabled,
-                    onPushToggle = { pushEnabled = it }
+                    onPushToggle = { 
+                        pushEnabled = it
+                        viewModel.updateSettings(dailyGoal.toInt(), notificationTime, it)
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -404,6 +428,7 @@ private fun UserInfoSection(
 private fun StudySettingsSection(
     dailyGoal: Float,
     onGoalChange: (Float) -> Unit,
+    onGoalChangeFinished: () -> Unit = {},
     notificationTime: String,
     onTimeClick: () -> Unit,
     pushEnabled: Boolean,
@@ -461,6 +486,7 @@ private fun StudySettingsSection(
             Slider(
                 value = dailyGoal,
                 onValueChange = onGoalChange,
+                onValueChangeFinished = onGoalChangeFinished,
                 valueRange = 5f..50f,
                 steps = 44, // 44 bước tương ứng nhảy từng đơn vị
                 modifier = Modifier.fillMaxWidth(),
@@ -563,9 +589,7 @@ private fun SettingsSwitchRow(
     }
 }
 
-/**
- * Khối các tuỳ chọn cài đặt của Tài khoản (Đổi mật khẩu, Trình độ, v.v.)
- */
+
 @Composable
 private fun AccountSection(items: List<AccountMenuItem>) {
     Card(
