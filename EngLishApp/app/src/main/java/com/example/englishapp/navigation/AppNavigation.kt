@@ -6,13 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.compose.material3.Text // Tạm thời dùng Text làm màn hình giả lập cho Onboarding
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.englishapp.features.auth.domain.model.AuthResult
 import com.example.englishapp.features.auth.presentation.login.LoginScreen
 import com.example.englishapp.features.auth.presentation.register.RegisterScreen
 import com.example.englishapp.features.auth.presentation.forgot_password.ForgotPasswordScreen
@@ -33,7 +27,6 @@ import com.example.englishapp.features.vocab.presentation.vocab_list.VocabListSc
 import com.example.englishapp.features.learn.presentation.flashcard.FlashcardScreen
 import com.example.englishapp.features.learn.presentation.complete.SessionCompleteScreen
 import com.example.englishapp.features.vocab.presentation.dictionary.DictionaryScreen
-import android.widget.Toast
 
 
 @Composable
@@ -65,8 +58,6 @@ fun AppNavigation(
         composable(route = Screen.Onboarding.route) {
             OnboardingScreen(
                 onFinished = {
-                    // SỬA CHỖ NÀY: Ra lệnh nhảy thẳng sang màn hình Login
-                    // popUpTo giúp xóa luôn màn Onboarding khỏi bộ nhớ để bấm nút Back không bị quay lại nữa
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
                     }
@@ -113,10 +104,18 @@ fun AppNavigation(
                 onRecentClick = { deck -> navController.navigate(Screen.VocabList.createRoute(deck.setId)) },
                 onSeeAllClick = { navController.navigate(Screen.MySets.route) },
                 onNavItemClick = { index ->
-                    when (index) {
-                        1 -> navController.navigate(Screen.MySets.route)
-                        2 -> navController.navigate(Screen.Progress.route)
-                        3 -> navController.navigate(Screen.Profile.route)
+                    val route = when (index) {
+                        1 -> Screen.MySets.route
+                        2 -> Screen.Progress.route
+                        3 -> Screen.Profile.route
+                        else -> null
+                    }
+                    route?.let {
+                        navController.navigate(it) {
+                            popUpTo(Screen.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 }
             )
@@ -128,18 +127,24 @@ fun AppNavigation(
                 onBackClick = { navController.popBackStack() },
                 onNotificationClick = { navController.navigate(Screen.Notification.route) },
                 onNavItemClick = { index ->
-                    when (index) {
-                        0 -> navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Home.route) { inclusive = true }
+                    val route = when (index) {
+                        0 -> Screen.Home.route
+                        1 -> Screen.MySets.route
+                        3 -> Screen.Profile.route
+                        else -> null
+                    }
+                    route?.let {
+                        navController.navigate(it) {
+                            popUpTo(Screen.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        1 -> navController.navigate(Screen.MySets.route)
-                        3 -> navController.navigate(Screen.Profile.route)
                     }
                 }
             )
         }
 
-        // 4c. Màn hình Thông báo (Notification)
+        // 5. Màn hình Thông báo
         composable(route = Screen.Notification.route) {
             NotificationScreen(
                 onBackClick = { navController.popBackStack() },
@@ -147,16 +152,22 @@ fun AppNavigation(
             )
         }
 
-        // 4c. Màn hình Hồ sơ (Profile)
+        // 6. Màn hình Hồ sơ (Profile)
         composable(route = Screen.Profile.route) {
             ProfileScreen(
                 onNavItemClick = { index ->
-                    when (index) {
-                        0 -> navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Home.route) { inclusive = true }
+                    val route = when (index) {
+                        0 -> Screen.Home.route
+                        1 -> Screen.MySets.route
+                        2 -> Screen.Progress.route
+                        else -> null
+                    }
+                    route?.let {
+                        navController.navigate(it) {
+                            popUpTo(Screen.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        1 -> navController.navigate(Screen.MySets.route)
-                        2 -> navController.navigate(Screen.Progress.route)
                     }
                 },
                 onLogoutSuccess = {
@@ -170,7 +181,7 @@ fun AppNavigation(
             )
         }
 
-        // 4c. Màn hình Cài đặt (Settings)
+        // 7. Màn hình Cài đặt
         composable(route = Screen.Settings.route) {
             com.example.englishapp.features.profile.presentation.ui.SettingsScreen(
                 onBackClick = { navController.popBackStack() },
@@ -183,24 +194,29 @@ fun AppNavigation(
             )
         }
 
-        // 4c. Đổi mật khẩu
+        // 8. Đổi mật khẩu
         composable(route = Screen.ChangePassword.route) {
             ChangePasswordScreen(
                 onBackClick = { navController.popBackStack() },
                 onNavItemClick = { index ->
-                    when (index) {
-                        0 -> navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Home.route) { inclusive = true }
+                    val route = when (index) {
+                        0 -> Screen.Home.route
+                        1 -> Screen.MySets.route
+                        2 -> Screen.Progress.route
+                        else -> null
+                    }
+                    route?.let {
+                        navController.navigate(it) {
+                            popUpTo(Screen.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        1 -> navController.navigate(Screen.MySets.route)
-                        2 -> navController.navigate(Screen.Progress.route)
-                        3 -> navController.popBackStack()
                     }
                 }
             )
         }
 
-        // 5. Màn hình Đăng ký
+        // 9. Màn hình Đăng ký
         composable(route = Screen.Register.route) {
             RegisterScreen(
                 onRegisterSuccess = {
@@ -215,11 +231,10 @@ fun AppNavigation(
             )
         }
 
-        // 6. Màn hình Thiết lập (Setup)
+        // 10. Màn hình Thiết lập ban đầu (Setup)
         composable(route = Screen.Setup.route) {
             InitialSetupScreen(
                 onSetupComplete = {
-                    // Thiết lập xong -> Vào Home
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Setup.route) { inclusive = true }
                     }
@@ -227,7 +242,7 @@ fun AppNavigation(
             )
         }
 
-        // 7. Màn hình Quên mật khẩu
+        // 11. Màn hình Quên mật khẩu
         composable(route = Screen.ForgotPassword.route) {
             ForgotPasswordScreen(
                 onSendEmailSuccess = {
@@ -239,7 +254,7 @@ fun AppNavigation(
             )
         }
 
-        // 8. Các màn hình thuộc module Vocabulary (Thư viện từ vựng)
+        // 12. Quản lý Bộ từ vựng (Vocabulary)
         composable(route = Screen.MySets.route) {
             MySetsScreen(
                 onSetClick = { setId ->
@@ -255,12 +270,18 @@ fun AppNavigation(
                     navController.navigate(Screen.Notification.route) 
                 },
                 onNavItemClick = { index ->
-                    when (index) {
-                        0 -> navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Home.route) { inclusive = true }
+                    val route = when (index) {
+                        0 -> Screen.Home.route
+                        2 -> Screen.Progress.route
+                        3 -> Screen.Profile.route
+                        else -> null
+                    }
+                    route?.let {
+                        navController.navigate(it) {
+                            popUpTo(Screen.Home.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        2 -> navController.navigate(Screen.Progress.route)
-                        3 -> navController.navigate(Screen.Profile.route)
                     }
                 }
             )
@@ -312,7 +333,7 @@ fun AppNavigation(
                 mode = mode,
                 onBackClick = { navController.popBackStack() },
                 onSessionComplete = {
-                    // SỬA: Không popUpTo ở đây để SessionComplete vẫn có thể truy cập ViewModel
+                    // Không popUpTo ở đây để SessionComplete vẫn có thể truy cập ViewModel
                     navController.navigate(Screen.SessionComplete.route)
                 }
             )

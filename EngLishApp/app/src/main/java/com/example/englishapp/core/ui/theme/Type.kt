@@ -21,7 +21,7 @@ val InterFontFamily = FontFamily(
     Font(R.font.inter_medium, FontWeight.Medium)   // Ăn theo file inter_medium.ttf (Bản 18pt Medium xịn)
 )
 
-// 3. Cấu hình các tầng chữ chuẩn theo tài liệu DESIGN.md của MinLish
+// 3. Cấu hình các tầng chữ
 val Typography = Typography(
     // Word Display - Dành riêng cho mặt trước của thẻ học từ vựng Flashcard
     displayLarge = TextStyle(

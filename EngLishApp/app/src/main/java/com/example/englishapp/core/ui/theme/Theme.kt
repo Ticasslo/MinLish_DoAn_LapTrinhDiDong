@@ -6,9 +6,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
-// =============================================================================
 // DARK COLOR SCHEME
-// =============================================================================
 private val DarkColorScheme = darkColorScheme(
     // Primary
     primary = PrimaryDark,
@@ -47,9 +45,7 @@ private val DarkColorScheme = darkColorScheme(
     onErrorContainer = OnErrorContainerDark,
 )
 
-// =============================================================================
 // LIGHT COLOR SCHEME
-// =============================================================================
 private val LightColorScheme = lightColorScheme(
     // Primary
     primary = PrimaryLight,
@@ -88,9 +84,7 @@ private val LightColorScheme = lightColorScheme(
     onErrorContainer = OnErrorContainerLight,
 )
 
-// =============================================================================
 // THEME ENTRY POINT
-// =============================================================================
 @Composable
 fun EngLishAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
