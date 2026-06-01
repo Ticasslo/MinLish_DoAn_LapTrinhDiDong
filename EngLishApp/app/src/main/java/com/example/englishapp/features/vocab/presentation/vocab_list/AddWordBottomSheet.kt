@@ -16,13 +16,18 @@ import androidx.compose.ui.unit.dp
 import com.example.englishapp.core.data.model.Word
 
 /**
- * BottomSheet kéo lên cho phép Tra cứu từ điển trực tuyến hoặc điền thông tin từ vựng thủ công
+ * BottomSheet kéo lên cho phép  điền thông tin từ vựng thủ công
  * và thực hiện các thao tác Thêm, Sửa, Xóa từ vựng chi tiết.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddWordBottomSheet(
     wordToEdit: Word?,
+    initialWord: String = wordToEdit?.word ?: "",
+    initialPhonetic: String = wordToEdit?.pronunciation ?: "",
+    initialMeaning: String = wordToEdit?.meaning ?: "",
+    initialDescription: String = wordToEdit?.description ?: "",
+    initialExample: String = wordToEdit?.example ?: "",
     onDismissRequest: () -> Unit,
     onSaveWord: (word: String, meaning: String, pronunciation: String?, description: String?, example: String?) -> Unit,
     onDeleteWord: () -> Unit,
@@ -30,12 +35,12 @@ fun AddWordBottomSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     
-    // Khởi tạo các trạng thái trường nhập liệu dựa trên wordToEdit
-    var wordVal by remember { mutableStateOf(wordToEdit?.word ?: "") }
-    var meaningVal by remember { mutableStateOf(wordToEdit?.meaning ?: "") }
-    var pronVal by remember { mutableStateOf(wordToEdit?.pronunciation ?: "") }
-    var descVal by remember { mutableStateOf(wordToEdit?.description ?: "") }
-    var examVal by remember { mutableStateOf(wordToEdit?.example ?: "") }
+    // Khởi tạo các trạng thái trường nhập liệu dựa trên initial values (có thể từ prefill)
+    var wordVal by remember { mutableStateOf(initialWord) }
+    var meaningVal by remember { mutableStateOf(initialMeaning) }
+    var pronVal by remember { mutableStateOf(initialPhonetic) }
+    var descVal by remember { mutableStateOf(initialDescription) }
+    var examVal by remember { mutableStateOf(initialExample) }
     
     var isLookingUp by remember { mutableStateOf(false) }
 
@@ -99,36 +104,6 @@ fun AddWordBottomSheet(
                 }
             }
 
-            // Nút Tra cứu online nhanh (Chỉ hiển thị khi thêm mới)
-            if (wordToEdit == null) {
-                OutlinedButton(
-                    onClick = {
-                        if (wordVal.isNotBlank()) {
-                            isLookingUp = true
-                            onLookupWord(wordVal) { p, m, e ->
-                                isLookingUp = false
-                                if (p != null) pronVal = p
-                                if (m != null) meaningVal = m
-                                if (e != null) examVal = e
-                            }
-                        }
-                    },
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    if (isLookingUp) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    } else {
-                        Icon(imageVector = Icons.Default.Search, contentDescription = null)
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Tra cứu từ điển trực tuyến", fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
 
             // Các trường nhập liệu
             OutlinedTextField(

@@ -50,6 +50,12 @@ fun VocabListScreen(
     onBackClick: () -> Unit,
     onLearnClick: (String) -> Unit, // Đi tới màn hình học thẻ ghi nhớ SRS
     onReviewClick: (String) -> Unit, // Đi tới màn hình ôn tập SRS
+    onLookupOnlineClick: () -> Unit = {}, // Mở màn hình tra cứu từ trực tuyến
+    prefillWord: String? = null,
+    prefillPhonetic: String? = null,
+    prefillMeaning: String? = null,
+    prefillDescription: String? = null,
+    prefillExample: String? = null,
     viewModel: VocabViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -60,6 +66,21 @@ fun VocabListScreen(
     
     // Trạng thái từ vựng được chọn để chỉnh sửa (null nghĩa là thêm mới)
     var selectedWordForEdit by remember { mutableStateOf<Word?>(null) }
+
+    // Khi có prefill data từ màn hình Dictionary, tự động mở BottomSheet và điền sẵn
+    var prefillWordState by remember { mutableStateOf(prefillWord) }
+    var prefillPhoneticState by remember { mutableStateOf(prefillPhonetic) }
+    var prefillMeaningState by remember { mutableStateOf(prefillMeaning) }
+    var prefillDescriptionState by remember { mutableStateOf(prefillDescription) }
+    var prefillExampleState by remember { mutableStateOf(prefillExample) }
+
+    // Mở tự động BottomSheet khi có prefill data
+    LaunchedEffect(prefillWord) {
+        if (!prefillWord.isNullOrBlank()) {
+            selectedWordForEdit = null
+            showAddWordSheet = true
+        }
+    }
     
     // Trạng thái hiển thị Import/Export CSV dialog
     var showImportSheet by remember { mutableStateOf(false) }
@@ -76,6 +97,7 @@ fun VocabListScreen(
             VocabListTopBar(
                 title = uiState.set?.name ?: "Oxford Essential",
                 onBackClick = onBackClick,
+                onLookupOnlineClick = onLookupOnlineClick,
                 onExportClick = {
                     viewModel.exportCsv { csv ->
                         if (csv.isNotBlank()) {
@@ -202,7 +224,17 @@ fun VocabListScreen(
     if (showAddWordSheet) {
         AddWordBottomSheet(
             wordToEdit = selectedWordForEdit,
-            onDismissRequest = { showAddWordSheet = false },
+            initialWord = if (selectedWordForEdit == null) prefillWordState ?: "" else selectedWordForEdit!!.word,
+            initialPhonetic = if (selectedWordForEdit == null) prefillPhoneticState ?: "" else selectedWordForEdit!!.pronunciation ?: "",
+            initialMeaning = if (selectedWordForEdit == null) prefillMeaningState ?: "" else selectedWordForEdit!!.meaning,
+            initialDescription = if (selectedWordForEdit == null) prefillDescriptionState ?: "" else selectedWordForEdit!!.description ?: "",
+            initialExample = if (selectedWordForEdit == null) prefillExampleState ?: "" else selectedWordForEdit!!.example ?: "",
+            onDismissRequest = {
+                showAddWordSheet = false
+                // Xóa prefill sau khi đóng
+                prefillWordState = null; prefillPhoneticState = null
+                prefillMeaningState = null; prefillDescriptionState = null; prefillExampleState = null
+            },
             onSaveWord = { wordVal, meaningVal, pronVal, descVal, examVal ->
                 if (selectedWordForEdit == null) {
                     viewModel.addWord(wordVal, meaningVal, pronVal, descVal, examVal)
@@ -250,6 +282,7 @@ fun VocabListScreen(
 private fun VocabListTopBar(
     title: String,
     onBackClick: () -> Unit,
+    onLookupOnlineClick: () -> Unit = {},
     onExportClick: () -> Unit,
     onImportClick: () -> Unit
 ) {
@@ -290,6 +323,14 @@ private fun VocabListTopBar(
             }
             
             Row {
+                // Nút tra cứu từ điển
+                IconButton(onClick = onLookupOnlineClick) {
+                    Icon(
+                        imageVector = Icons.Outlined.Search,
+                        contentDescription = "Tra cứu từ điển",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
                 IconButton(onClick = onImportClick) {
                     Icon(
                         imageVector = Icons.Default.Edit, // Tượng trưng cho thêm hàng loạt

@@ -55,7 +55,6 @@ data class AccountMenuItem(
 @Composable
 fun ProfileScreen(
     onNavItemClick: (Int) -> Unit = {},
-    onMenuClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onLogoutSuccess: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
@@ -88,8 +87,7 @@ fun ProfileScreen(
     var notificationTime by remember(user) { mutableStateOf(user?.reminderTime ?: "20:00") }
     // Bật/tắt thông báo đẩy trên điện thoại
     var pushEnabled by remember(user) { mutableStateOf(user?.pushEnabled ?: true) }
-    // Bật/tắt thông báo qua email gửi về hộp thư
-    var emailEnabled by remember { mutableStateOf(false) }
+
     // Trạng thái hiển thị hộp thoại chọn giờ thông báo
     var showTimePicker by remember { mutableStateOf(false) }
 
@@ -123,7 +121,6 @@ fun ProfileScreen(
         topBar = {
             // Hàm vẽ thanh tiêu đề trên cùng
             ProfileTopBar(
-                onMenuClick = onMenuClick,
                 onSettingsClick = onSettingsClick
             )
         },
@@ -171,9 +168,7 @@ fun ProfileScreen(
                     notificationTime = notificationTime,
                     onTimeClick = { showTimePicker = true },
                     pushEnabled = pushEnabled,
-                    onPushToggle = { pushEnabled = it },
-                    emailEnabled = emailEnabled,
-                    onEmailToggle = { emailEnabled = it }
+                    onPushToggle = { pushEnabled = it }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -225,49 +220,33 @@ fun ProfileScreen(
  */
 @Composable
 private fun ProfileTopBar(
-    onMenuClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 2.dp // Đổ bóng nhẹ 2dp
+        shadowElevation = 2.dp
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .statusBarsPadding() // Tránh đè lên thanh trạng thái điện thoại
+                .statusBarsPadding()
                 .height(64.dp)
                 .padding(horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            contentAlignment = Alignment.Center
         ) {
-            // Nút Menu và Tên App bên trái
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onMenuClick) {
-                    Icon(
-                        imageVector = Icons.Outlined.Menu,
-                        contentDescription = "Menu",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                Text(
-                    text = "MinLish",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.primary,
-                    letterSpacing = (-0.5).sp
-                )
-            }
+            // Tiêu đề căn giữa
+            Text(
+                text = "Hồ sơ",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
 
-            // Nhãn "Hồ sơ" và nút cài đặt bên phải
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "Hồ sơ",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(end = 4.dp)
-                )
+            // Nút cài đặt căn phải
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.CenterEnd
+            ) {
                 IconButton(onClick = onSettingsClick) {
                     Icon(
                         imageVector = Icons.Outlined.Settings,
@@ -279,6 +258,7 @@ private fun ProfileTopBar(
         }
     }
 }
+
 
 /**
  * Khu vực hiển thị thông tin cá nhân (Avatar tròn, Tên, Email, Trình độ, Mục tiêu)
@@ -428,8 +408,7 @@ private fun StudySettingsSection(
     onTimeClick: () -> Unit,
     pushEnabled: Boolean,
     onPushToggle: (Boolean) -> Unit,
-    emailEnabled: Boolean,
-    onEmailToggle: (Boolean) -> Unit
+
 ) {
     Card(
         shape = RoundedCornerShape(12.dp), // Bo góc 12dp chuẩn
@@ -546,15 +525,6 @@ private fun StudySettingsSection(
                 label = "Thông báo đẩy (Push)",
                 checked = pushEnabled,
                 onCheckedChange = onPushToggle
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Dòng Switch: Bật tắt nhận email nhắc học hằng tuần/ngày
-            SettingsSwitchRow(
-                label = "Thông báo qua Email",
-                checked = emailEnabled,
-                onCheckedChange = onEmailToggle
             )
         }
     }

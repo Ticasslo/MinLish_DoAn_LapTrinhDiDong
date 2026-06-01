@@ -66,16 +66,6 @@ fun ProgressScreen(
                         style = Typography.headlineMedium.copy(fontSize = 20.sp)
                     )
                 },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Quay lại")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onNotificationClick) {
-                        Icon(Icons.Outlined.Notifications, contentDescription = "Notifications")
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )

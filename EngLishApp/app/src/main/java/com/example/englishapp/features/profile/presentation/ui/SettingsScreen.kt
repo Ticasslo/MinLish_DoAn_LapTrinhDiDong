@@ -44,7 +44,6 @@ fun SettingsScreen(
     var dailyGoal by remember(user) { mutableFloatStateOf(user?.dailyGoal?.toFloat() ?: 20f) }
     var notificationTime by remember(user) { mutableStateOf(user?.reminderTime ?: "20:00") }
     var pushEnabled by remember(user) { mutableStateOf(user?.pushEnabled ?: true) }
-    var emailEnabled by remember { mutableStateOf(false) }
 
     // ── Appearance & sound state (local-only, chưa có persistence) ──
     val darkMode by viewModel.isDarkMode.collectAsState()
@@ -114,9 +113,7 @@ fun SettingsScreen(
                 onPushToggle = { newValue ->
                     pushEnabled = newValue
                     viewModel.updateSettings(dailyGoal.toInt(), notificationTime, newValue)
-                },
-                emailEnabled = emailEnabled,
-                onEmailToggle = { emailEnabled = it },
+                }
             )
 
             // ── Giao diện & Âm thanh ──────────────────
@@ -455,9 +452,7 @@ private fun StudySettingsCard(
     notificationTime: String,
     onNotificationTimeClick: () -> Unit,
     pushEnabled: Boolean,
-    onPushToggle: (Boolean) -> Unit,
-    emailEnabled: Boolean,
-    onEmailToggle: (Boolean) -> Unit,
+    onPushToggle: (Boolean) -> Unit
 ) {
     SettingsCard {
         // Daily goal slider
@@ -532,16 +527,6 @@ private fun StudySettingsCard(
             onCheckedChange = onPushToggle,
         )
 
-        SettingsDivider()
-
-        // Email notifications
-        SettingsSwitchRow2(
-            icon = Icons.Outlined.Mail,
-            iconTint = MaterialTheme.colorScheme.outline,
-            label = "Thông báo qua Email",
-            checked = emailEnabled,
-            onCheckedChange = onEmailToggle,
-        )
     }
 }
 

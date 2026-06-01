@@ -51,6 +51,7 @@ fun HomeScreen(
     onReviewClick: (HomeReviewDeck) -> Unit = {},
     onLearnClick: (HomeNewWordDeck) -> Unit = {},
     onDetailClick: () -> Unit = {},
+    onRecentClick: (HomeRecentDeck) -> Unit = {},
     onSeeAllClick: () -> Unit = {},
     onNavItemClick: (Int) -> Unit = {},
     onAddClick: () -> Unit = {},
@@ -150,7 +151,8 @@ fun HomeScreen(
             if (recentDecks.isNotEmpty()) {
                 RecentSection(
                     decks = recentDecks,
-                    onSeeAllClick = onSeeAllClick
+                    onSeeAllClick = onSeeAllClick,
+                    onRecentClick = onRecentClick
                 )
             }
         }
@@ -622,7 +624,8 @@ private fun NewWordsSection(
 @Composable
 private fun RecentSection(
     decks: List<HomeRecentDeck>,
-    onSeeAllClick: () -> Unit
+    onSeeAllClick: () -> Unit,
+    onRecentClick: (HomeRecentDeck) -> Unit
 ) {
     Column(
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -657,16 +660,20 @@ private fun RecentSection(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             decks.forEach { deck ->
-                Row(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .border(0.5.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
-                        .clickable { /* Xử lý sự kiện bấm xem chi tiết khi cần */ }
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .clickable { onRecentClick(deck) },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
                 ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                     // Biểu tượng nằm trong hộp màu nền nhạt
                     Box(
                         modifier = Modifier
@@ -708,6 +715,7 @@ private fun RecentSection(
                         contentDescription = "Tùy chọn",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
                 }
             }
         }

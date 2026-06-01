@@ -24,5 +24,6 @@ sealed class Screen(val route: String) {
         fun createRoute(setId: String, mode: String) = "flashcard_screen/$setId/$mode"
     }
     object SessionComplete : Screen("session_complete_screen")
+    object Dictionary : Screen("dictionary_screen")
 }
 

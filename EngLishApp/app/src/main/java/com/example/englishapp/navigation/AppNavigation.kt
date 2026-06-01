@@ -32,6 +32,7 @@ import com.example.englishapp.features.learn.presentation.viewmodel.LearnViewMod
 import com.example.englishapp.features.vocab.presentation.vocab_list.VocabListScreen
 import com.example.englishapp.features.learn.presentation.flashcard.FlashcardScreen
 import com.example.englishapp.features.learn.presentation.complete.SessionCompleteScreen
+import com.example.englishapp.features.vocab.presentation.dictionary.DictionaryScreen
 import android.widget.Toast
 
 
@@ -109,6 +110,7 @@ fun AppNavigation(
                 onLearnClick = { deck -> navController.navigate(Screen.VocabList.createRoute(deck.setId)) },
                 onAddClick = { navController.navigate(Screen.CreateSet.route) },
                 onDetailClick = { navController.navigate(Screen.Progress.route) },
+                onRecentClick = { deck -> navController.navigate(Screen.VocabList.createRoute(deck.setId)) },
                 onSeeAllClick = { navController.navigate(Screen.MySets.route) },
                 onNavItemClick = { index ->
                     when (index) {
@@ -249,6 +251,9 @@ fun AppNavigation(
                 onCreateSetClick = {
                     navController.navigate(Screen.CreateSet.route)
                 },
+                onNotificationClick = { 
+                    navController.navigate(Screen.Notification.route) 
+                },
                 onNavItemClick = { index ->
                     when (index) {
                         0 -> navController.navigate(Screen.Home.route) {
@@ -270,6 +275,14 @@ fun AppNavigation(
 
         composable(route = Screen.VocabList.route) { backStackEntry ->
             val setId = backStackEntry.arguments?.getString("setId") ?: ""
+
+            // Nhận dữ liệu prefill từ màn hình Dictionary (qua savedStateHandle)
+            val prefillWord by backStackEntry.savedStateHandle.getStateFlow("prefill_word", "").collectAsState()
+            val prefillPhonetic by backStackEntry.savedStateHandle.getStateFlow("prefill_phonetic", "").collectAsState()
+            val prefillMeaning by backStackEntry.savedStateHandle.getStateFlow("prefill_meaning", "").collectAsState()
+            val prefillDescription by backStackEntry.savedStateHandle.getStateFlow("prefill_description", "").collectAsState()
+            val prefillExample by backStackEntry.savedStateHandle.getStateFlow("prefill_example", "").collectAsState()
+
             VocabListScreen(
                 setId = setId,
                 onBackClick = { navController.popBackStack() },
@@ -278,7 +291,15 @@ fun AppNavigation(
                 },
                 onReviewClick = { id ->
                     navController.navigate(Screen.Flashcard.createRoute(id, "review"))
-                }
+                },
+                onLookupOnlineClick = {
+                    navController.navigate(Screen.Dictionary.route)
+                },
+                prefillWord = prefillWord.ifBlank { null },
+                prefillPhonetic = prefillPhonetic.ifBlank { null },
+                prefillMeaning = prefillMeaning.ifBlank { null },
+                prefillDescription = prefillDescription.ifBlank { null },
+                prefillExample = prefillExample.ifBlank { null }
             )
         }
 
@@ -330,6 +351,31 @@ fun AppNavigation(
                     popUpTo(Screen.Home.route) { inclusive = true }
                 }
             }
+        }
+
+        composable(route = Screen.Dictionary.route) {
+            DictionaryScreen(
+                onBackClick = { navController.popBackStack() },
+                onSaveWord = { word, phonetic, vietnameseMeaning, englishDefinition, example ->
+                    // Pop khỏi Dictionary và quay lại VocabList với dữ liệu đã điền sẵn
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("prefill_word", word)
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("prefill_phonetic", phonetic)
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("prefill_meaning", vietnameseMeaning)
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("prefill_description", englishDefinition)
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("prefill_example", example)
+                    navController.popBackStack()
+                }
+            )
         }
 
     }

@@ -44,6 +44,7 @@ fun MySetsScreen(
     onSetClick: (String) -> Unit, // Nhấp vào bộ từ -> Sang màn hình chi tiết từ vựng
     onLearnClick: (String) -> Unit, // Nhấp vào nút Học -> Bắt đầu học SRS
     onCreateSetClick: () -> Unit, // Nhấp vào FAB -> Sang màn hình Tạo bộ từ
+    onNotificationClick: () -> Unit = {}, // Nhấp vào nút thông báo
     onNavItemClick: (Int) -> Unit, // Điều hướng khi nhấp Bottom Navigation
     viewModel: SetsViewModel = hiltViewModel()
 ) {
@@ -64,7 +65,7 @@ fun MySetsScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            MySetsTopBar()
+            MySetsTopBar(onNotificationClick = onNotificationClick)
         },
         bottomBar = {
             MainBottomBar(
@@ -153,7 +154,7 @@ fun MySetsScreen(
  * Thanh TopAppBar cho màn hình bộ từ
  */
 @Composable
-private fun MySetsTopBar() {
+private fun MySetsTopBar(onNotificationClick: () -> Unit) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 2.dp
@@ -171,13 +172,7 @@ private fun MySetsTopBar() {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                IconButton(onClick = {}) {
-                    Icon(
-                        imageVector = Icons.Filled.Menu,
-                        contentDescription = "Menu",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
+
                 Text(
                     text = "MinLish",
                     style = MaterialTheme.typography.titleLarge,
@@ -188,21 +183,7 @@ private fun MySetsTopBar() {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                IconButton(onClick = {}) {
-                    Icon(
-                        imageVector = Icons.Outlined.Search,
-                        contentDescription = "Tìm kiếm",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                IconButton(onClick = {}) {
-                    Icon(
-                        imageVector = Icons.Outlined.FilterList,
-                        contentDescription = "Bộ lọc",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                IconButton(onClick = {}) {
+                IconButton(onClick = onNotificationClick) {
                     Icon(
                         imageVector = Icons.Outlined.Notifications,
                         contentDescription = "Thông báo",
