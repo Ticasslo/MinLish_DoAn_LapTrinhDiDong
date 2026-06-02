@@ -48,6 +48,7 @@ import com.example.englishapp.features.home.presentation.viewmodel.HomeViewModel
 @Composable
 fun HomeScreen(
     onNotificationClick: () -> Unit = {},
+    onProfileClick: () -> Unit = {},
     onReviewClick: (HomeReviewDeck) -> Unit = {},
     onLearnClick: (HomeNewWordDeck) -> Unit = {},
     onDetailClick: () -> Unit = {},
@@ -66,7 +67,7 @@ fun HomeScreen(
     
     // Tính toán tiến trình học từ vựng hôm nay (tránh chia cho 0 bằng cách dùng coerceAtLeast)
     val progress = (uiState.wordsToday.toFloat() / uiState.wordGoal.toFloat().coerceAtLeast(1f)).coerceIn(0f, 1f)
-    
+
     // Hiệu ứng chuyển động mượt mà cho thanh tiến độ
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
@@ -97,7 +98,8 @@ fun HomeScreen(
             HomeTopBar(
                 userName = userName,
                 avatarUrl = avatarUrl,
-                onNotificationClick = onNotificationClick
+                onNotificationClick = onNotificationClick,
+                onProfileClick = onProfileClick
             ) 
         },
         bottomBar = {
@@ -171,7 +173,8 @@ fun HomeScreen(
 private fun HomeTopBar(
     userName: String,
     avatarUrl: String?,
-    onNotificationClick: () -> Unit
+    onNotificationClick: () -> Unit,
+    onProfileClick: () -> Unit
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
@@ -188,6 +191,10 @@ private fun HomeTopBar(
         ) {
             // Khối hiển thị ảnh đại diện và lời chào bên trái
             Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { onProfileClick() }
+                    .padding(4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {

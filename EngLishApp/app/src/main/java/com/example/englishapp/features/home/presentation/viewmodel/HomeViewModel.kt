@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.englishapp.core.data.model.User
 import com.example.englishapp.features.auth.domain.model.AuthResult
 import com.example.englishapp.features.auth.domain.repository.IAuthRepository
+import com.example.englishapp.core.data.repository.SyncRepository
 import com.example.englishapp.features.home.domain.model.HomeNewWordDeck
 import com.example.englishapp.features.home.domain.model.HomeRecentDeck
 import com.example.englishapp.features.home.domain.model.HomeReviewDeck
@@ -15,13 +16,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class HomeUiState(
     val user: User? = null,
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true, // Mặc định là true khi bắt đầu
     val error: String? = null,
     val streakDays: Int = 0,
     val wordsToday: Int = 0,
@@ -29,7 +31,8 @@ data class HomeUiState(
     val dueWordsCount: Int = 0,
     val reviewDecks: List<HomeReviewDeck> = emptyList(),
     val newWordDecks: List<HomeNewWordDeck> = emptyList(),
-    val recentDecks: List<HomeRecentDeck> = emptyList()
+    val recentDecks: List<HomeRecentDeck> = emptyList(),
+    val isSyncing: Boolean = false
 )
 
 @HiltViewModel
@@ -37,23 +40,38 @@ class HomeViewModel @Inject constructor(
     private val authRepository: IAuthRepository,
     private val getStreakUseCase: GetStreakUseCase,
     private val getDailyProgressUseCase: GetDailyProgressUseCase,
-    private val getHomeDecksUseCase: GetHomeDecksUseCase
+    private val getHomeDecksUseCase: GetHomeDecksUseCase,
+    private val syncRepository: SyncRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState = _uiState.asStateFlow()
-    private var dailyProgressJob: Job? = null
-    private var homeDecksJob: Job? = null
+    
+    private var statsJob: Job? = null
 
     init {
         loadUserData()
+        triggerSync()
+    }
+
+    private fun triggerSync() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSyncing = true) }
+            try {
+                syncRepository.syncAll()
+            } catch (e: Exception) {
+                // Có thể log lỗi ở đây nhưng không làm gián đoạn trải nghiệm offline
+            } finally {
+                _uiState.update { it.copy(isSyncing = false) }
+            }
+        }
     }
 
     private fun loadUserData() {
         val currentUser = authRepository.getCurrentUser()
         if (currentUser != null) {
             viewModelScope.launch {
-                authRepository.getUserData(currentUser.userId).collect { result ->
+                authRepository.getUserData(currentUser.userId).collectLatest { result ->
                     when (result) {
                         is AuthResult.Loading -> {
                             _uiState.update { it.copy(isLoading = true) }
@@ -61,10 +79,9 @@ class HomeViewModel @Inject constructor(
                         is AuthResult.Success -> {
                             _uiState.update { it.copy(
                                 user = result.data,
-                                isLoading = false,
                                 wordGoal = result.data.dailyGoal
                             ) }
-                            loadHomeStats(result.data.userId)
+                            startObservingData(result.data.userId)
                         }
                         is AuthResult.Error -> {
                             _uiState.update { it.copy(
@@ -75,40 +92,45 @@ class HomeViewModel @Inject constructor(
                     }
                 }
             }
+        } else {
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
-    private fun loadHomeStats(userId: String) {
-        // 1) Streak hiện tại
-        viewModelScope.launch {
-            val streakDays = getStreakUseCase(userId)
-            _uiState.update { it.copy(streakDays = streakDays) }
-        }
-
-        // 2) Tiến độ hôm nay + số từ đến hạn
-        val (startOfDay, endOfDay) = getTodayRangeMillis()
-        dailyProgressJob?.cancel()
-        dailyProgressJob = viewModelScope.launch {
-            getDailyProgressUseCase(userId, startOfDay, endOfDay).collect { progress ->
-                _uiState.update {
-                    it.copy(
-                        wordsToday = progress.wordsToday,
-                        dueWordsCount = progress.dueWordsCount
-                    )
+    private fun startObservingData(userId: String) {
+        statsJob?.cancel()
+        statsJob = viewModelScope.launch {
+            // 1) Streak (Flow)
+            launch {
+                getStreakUseCase(userId).collect { streakDays ->
+                    _uiState.update { it.copy(streakDays = streakDays) }
                 }
             }
-        }
 
-        // 3) Các bộ từ thực: review decks, new word decks, recent decks
-        homeDecksJob?.cancel()
-        homeDecksJob = viewModelScope.launch {
-            getHomeDecksUseCase(userId).collect { decksData ->
-                _uiState.update {
-                    it.copy(
-                        reviewDecks = decksData.reviewDecks,
-                        newWordDecks = decksData.newWordDecks,
-                        recentDecks = decksData.recentDecks
-                    )
+            // 2) Tiến độ hôm nay + số từ đến hạn
+            val (startOfDay, endOfDay) = getTodayRangeMillis()
+            launch {
+                getDailyProgressUseCase(userId, startOfDay, endOfDay).collect { progress ->
+                    _uiState.update {
+                        it.copy(
+                            wordsToday = progress.wordsToday,
+                            dueWordsCount = progress.dueWordsCount
+                        )
+                    }
+                }
+            }
+
+            // 3) Các bộ từ thực
+            launch {
+                getHomeDecksUseCase(userId).collect { decksData ->
+                    _uiState.update {
+                        it.copy(
+                            reviewDecks = decksData.reviewDecks,
+                            newWordDecks = decksData.newWordDecks,
+                            recentDecks = decksData.recentDecks,
+                            isLoading = false // Đã tải xong dữ liệu chính
+                        )
+                    }
                 }
             }
         }

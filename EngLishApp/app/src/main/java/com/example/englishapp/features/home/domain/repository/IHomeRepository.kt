@@ -6,7 +6,7 @@ import com.example.englishapp.features.home.domain.model.HomeReviewDeck
 import kotlinx.coroutines.flow.Flow
 
 interface IHomeRepository {
-    suspend fun getCurrentStreakDays(userId: String): Int
+    fun getCurrentStreakDays(userId: String): Flow<Int>
     fun getDueWordsCount(userId: String): Flow<Int>
     fun getWordsStudiedToday(userId: String, startOfDay: Long, endOfDay: Long): Flow<Int>
     fun getReviewDecks(userId: String): Flow<List<HomeReviewDeck>>
