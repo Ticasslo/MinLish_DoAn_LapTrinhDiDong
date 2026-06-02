@@ -61,6 +61,20 @@ fun SettingsScreen(
     // Snackbar
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // ── Permission Launcher (Android 13+) ──────────
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            pushEnabled = true
+            viewModel.updateSettings(dailyGoal.toInt(), notificationTime, true)
+        } else {
+            // Không được cấp quyền, giữ nguyên hoặc tắt (tùy logic)
+            pushEnabled = false
+            viewModel.updateSettings(dailyGoal.toInt(), notificationTime, false)
+        }
+    }
+
     // ── Lắng nghe trạng thái đã lưu thành công ──
     LaunchedEffect(uiState.settingsSaved) {
         if (uiState.settingsSaved) {
@@ -111,8 +125,12 @@ fun SettingsScreen(
                 onNotificationTimeClick = { showTimePicker = true },
                 pushEnabled = pushEnabled,
                 onPushToggle = { newValue ->
-                    pushEnabled = newValue
-                    viewModel.updateSettings(dailyGoal.toInt(), notificationTime, newValue)
+                    if (newValue && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                        permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                    } else {
+                        pushEnabled = newValue
+                        viewModel.updateSettings(dailyGoal.toInt(), notificationTime, newValue)
+                    }
                 }
             )
 

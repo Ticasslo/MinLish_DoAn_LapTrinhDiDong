@@ -33,7 +33,8 @@ class ProfileViewModel @Inject constructor(
     private val authRepository: IAuthRepository,
     private val themeManager: ThemeManager,
     private val testDataGenerator: TestDataGenerator,
-    private val syncRepository: SyncRepository
+    private val syncRepository: SyncRepository,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -96,6 +97,14 @@ class ProfileViewModel @Inject constructor(
                 when (result) {
                     is AuthResult.Success -> {
                         _uiState.update { it.copy(settingsSaved = true) }
+                        
+                        // Lên lịch hoặc hủy lịch thông báo
+                        if (pushEnabled) {
+                            com.example.englishapp.features.notification.worker.NotificationScheduler.scheduleDailyReminder(context, reminderTime)
+                        } else {
+                            com.example.englishapp.features.notification.worker.NotificationScheduler.cancelDailyReminder(context)
+                        }
+                        
                         // Reload user data để cập nhật UI
                         loadUserData()
                     }

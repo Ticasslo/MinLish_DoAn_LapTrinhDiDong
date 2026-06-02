@@ -42,4 +42,11 @@ object AppModule {
     fun provideNetworkUtil(
         @ApplicationContext context: Context
     ): NetworkUtil = NetworkUtil(context)
+
+    @Provides
+    @Singleton
+    fun provideNotificationHelper(
+        @ApplicationContext context: Context
+    ): com.example.englishapp.core.util.NotificationHelper =
+        com.example.englishapp.core.util.NotificationHelper(context)
 }

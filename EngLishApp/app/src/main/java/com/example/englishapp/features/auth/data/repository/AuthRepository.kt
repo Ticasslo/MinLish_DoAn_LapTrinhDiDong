@@ -54,6 +54,10 @@ class AuthRepository @Inject constructor(
             // Kích hoạt đồng bộ ngay lập tức để lấy dữ liệu liên quan khác (nếu có)
             SyncWorker.startImmediate(context)
             
+            if (newUser.pushEnabled) {
+                com.example.englishapp.features.notification.worker.NotificationScheduler.scheduleDailyReminder(context, newUser.reminderTime)
+            }
+            
             emit(AuthResult.Success(newUser))
         } catch (e: com.google.firebase.auth.FirebaseAuthUserCollisionException) {
             emit(AuthResult.Error("Email đã tồn tại. Hãy Đăng nhập hoặc Quên mật khẩu."))
@@ -82,6 +86,10 @@ class AuthRepository @Inject constructor(
                 // Kích hoạt đồng bộ dữ liệu toàn cục ngay sau khi đăng nhập thành công
                 SyncWorker.startImmediate(context)
                 
+                if (userData.pushEnabled) {
+                    com.example.englishapp.features.notification.worker.NotificationScheduler.scheduleDailyReminder(context, userData.reminderTime)
+                }
+                
                 emit(AuthResult.Success(userData))
             } else {
                 emit(AuthResult.Error("Thông tin người dùng không tồn tại trên máy chủ"))
@@ -103,6 +111,7 @@ class AuthRepository @Inject constructor(
                 val workManager = androidx.work.WorkManager.getInstance(context)
                 workManager.cancelUniqueWork(SyncWorker.PERIODIC_SYNC_WORK_NAME)
                 workManager.cancelUniqueWork(SyncWorker.IMMEDIATE_SYNC_WORK_NAME)
+                com.example.englishapp.features.notification.worker.NotificationScheduler.cancelDailyReminder(context)
                 
                 // 2. Đăng xuất Firebase
                 firebaseService.auth.signOut()
@@ -222,6 +231,10 @@ class AuthRepository @Inject constructor(
                 
                 // Kích hoạt đồng bộ ngay lập tức
                 SyncWorker.startImmediate(context)
+
+                if (userData.pushEnabled) {
+                    com.example.englishapp.features.notification.worker.NotificationScheduler.scheduleDailyReminder(context, userData.reminderTime)
+                }
 
                 AuthResult.Success(userData)
             } else {

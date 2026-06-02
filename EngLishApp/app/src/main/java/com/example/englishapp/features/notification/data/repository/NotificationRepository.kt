@@ -33,8 +33,7 @@ class NotificationRepository @Inject constructor(
     }
 
     override suspend fun deleteNotification(notificationId: String) {
-        // We need the entity to delete, or a query in DAO.
-        // Let's assume we just mark as read or we can add a delete query by ID to DAO.
+        notificationDao.deleteNotificationById(notificationId)
     }
 
     private fun NotificationEntity.toDomain(): Notification {

@@ -148,7 +148,11 @@ fun AppNavigation(
         composable(route = Screen.Notification.route) {
             NotificationScreen(
                 onBackClick = { navController.popBackStack() },
-                onActionClick = { /* Handle deep links if needed */ }
+                onActionClick = { 
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                }
             )
         }
 
