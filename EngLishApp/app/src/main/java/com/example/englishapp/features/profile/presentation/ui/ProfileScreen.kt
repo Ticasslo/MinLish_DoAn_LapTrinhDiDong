@@ -14,19 +14,21 @@ import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.automirrored.outlined.TrendingUp
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.PickVisualMediaRequest
@@ -39,9 +41,7 @@ import com.example.englishapp.core.ui.components.MainBottomBar
 import com.example.englishapp.core.ui.components.NavItem
 import com.example.englishapp.features.profile.presentation.viewmodel.ProfileViewModel
 
-// =============================================================================
 // LỚP DỮ LIỆU ĐỊNH NGHĨA ITEM CHO MENU TÀI KHOẢN
-// =============================================================================
 
 // Định nghĩa cấu trúc của một dòng tùy chọn trong mục Tài khoản
 data class AccountMenuItem(
@@ -50,9 +50,8 @@ data class AccountMenuItem(
     val onClick: () -> Unit = {}
 )
 
-// =============================================================================
+
 // MÀN HÌNH HỒ SƠ CHÍNH (PROFILESCREEN COMPOSE)
-// =============================================================================
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
@@ -67,6 +66,8 @@ fun ProfileScreen(
 
     val context = androidx.compose.ui.platform.LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     // Khai báo launcher để chọn ảnh đại diện từ thư viện
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -92,28 +93,49 @@ fun ProfileScreen(
         }
     )
 
-    // 2. Định nghĩa các biến hiển thị thông tin cơ bản của người dùng
-    val userName = user?.name ?: "Người dùng"
-    val userEmail = user?.email ?: ""
-    val userLevel = "Level ${user?.level ?: "Mới"}"
-    val userGoal = "Mục tiêu: ${user?.goal ?: "Chưa đặt"}"
-    val avatarUrl = user?.avatar
+    // Khai báo launcher để yêu cầu quyền thông báo (Android 13+)
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Nếu được cấp quyền, tiến hành cập nhật bật thông báo
+            viewModel.updateSettings(user?.dailyGoal ?: 20, user?.reminderTime ?: "20:00", true)
+        } else {
+            // Nếu từ chối, có thể hiện thông báo nhắc nhở hoặc không làm gì
+            viewModel.updateSettings(user?.dailyGoal ?: 20, user?.reminderTime ?: "20:00", false)
+        }
+    }
 
-    // 3. Sử dụng remember để lưu trạng thái cục bộ cho các mục thiết lập (nhờ đó UI sẽ tự thay đổi khi cập nhật)
-    // Thanh trượt chọn số từ học mỗi ngày
-    var dailyGoal by remember(user) { mutableFloatStateOf(user?.dailyGoal?.toFloat() ?: 20f) }
-    // Giờ thông báo học tập hằng ngày
-    var notificationTime by remember(user) { mutableStateOf(user?.reminderTime ?: "20:00") }
-    // Bật/tắt thông báo đẩy trên điện thoại
-    var pushEnabled by remember(user) { mutableStateOf(user?.pushEnabled ?: true) }
-
-    // Trạng thái hiển thị hộp thoại chọn giờ thông báo
+    // Trạng thái các hộp thoại
+    var showLogoutDialog by remember { mutableStateOf(false) }
+    var showEditNameDialog by remember { mutableStateOf(false) }
+    var showGoalDialog by remember { mutableStateOf(false) }
+    var showLevelDialog by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+
+    // Biến tạm cho việc sửa tên
+    var newName by remember(user) { mutableStateOf(user?.name ?: "") }
 
     // 4. Lắng nghe trạng thái đăng xuất thành công để chuyển màn hình đăng nhập
     LaunchedEffect(uiState.isLoggedOut) {
         if (uiState.isLoggedOut) {
             onLogoutSuccess()
+        }
+    }
+
+    // Hiển thị thông báo khi lưu thành công
+    LaunchedEffect(uiState.settingsSaved) {
+        if (uiState.settingsSaved) {
+            snackbarHostState.showSnackbar("Đã cập nhật thông tin thành công")
+            viewModel.resetSettingsSavedState()
+        }
+    }
+
+    // Hiển thị thông báo lỗi
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.resetError()
         }
     }
 
@@ -127,15 +149,15 @@ fun ProfileScreen(
 
     // Chuẩn bị các nút tính năng trong phần Cài đặt Tài khoản
     val accountItems = listOf(
-        AccountMenuItem(Icons.Outlined.Flag, "Mục tiêu học tập"),
-        AccountMenuItem(Icons.Outlined.Star, "Trình độ hiện tại"),
-        AccountMenuItem(Icons.Outlined.Download, "Xuất dữ liệu"),
+        AccountMenuItem(Icons.Outlined.Flag, "Mục tiêu học tập", onClick = { showGoalDialog = true }),
+        AccountMenuItem(Icons.Outlined.Star, "Trình độ hiện tại", onClick = { showLevelDialog = true }),
         AccountMenuItem(Icons.Outlined.Science, "Tạo dữ liệu Test", onClick = { viewModel.generateTestData() })
     )
 
     // 6. Dựng bố cục màn hình Profile bằng Scaffold
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             // Hàm vẽ thanh tiêu đề trên cùng
             ProfileTopBar(
@@ -165,33 +187,37 @@ fun ProfileScreen(
 
                 // Khu vực 1: Hiển thị Avatar, Tên, Email và các Chip cấp độ/mục tiêu
                 UserInfoSection(
-                    userName = userName,
-                    userEmail = userEmail,
-                    userLevel = userLevel,
-                    userGoal = userGoal,
-                    avatarUrl = avatarUrl,
+                    userName = user?.name ?: "Người dùng",
+                    userEmail = user?.email ?: "",
+                    userLevel = "Level ${user?.level ?: "Mới"}",
+                    userGoal = "Mục tiêu: ${user?.goal ?: "Chưa đặt"}",
+                    avatarUrl = user?.avatar,
                     onEditAvatarClick = { 
                         photoPickerLauncher.launch(
                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                         )
-                    }
+                    },
+                    onEditNameClick = { showEditNameDialog = true }
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
                 // Khu vực 2: Khối cấu hình thiết lập học tập (số từ/ngày, thời gian nhắc nhở)
                 StudySettingsSection(
-                    dailyGoal = dailyGoal,
-                    onGoalChange = { dailyGoal = it },
-                    onGoalChangeFinished = {
-                        viewModel.updateSettings(dailyGoal.toInt(), notificationTime, pushEnabled)
+                    dailyGoal = user?.dailyGoal?.toFloat() ?: 20f,
+                    onGoalChange = { /* handled byFinished */ },
+                    onGoalChangeFinished = { goal ->
+                        viewModel.updateSettings(goal.toInt(), user?.reminderTime ?: "20:00", user?.pushEnabled ?: true)
                     },
-                    notificationTime = notificationTime,
+                    notificationTime = user?.reminderTime ?: "20:00",
                     onTimeClick = { showTimePicker = true },
-                    pushEnabled = pushEnabled,
-                    onPushToggle = { 
-                        pushEnabled = it
-                        viewModel.updateSettings(dailyGoal.toInt(), notificationTime, it)
+                    pushEnabled = user?.pushEnabled ?: true,
+                    onPushToggle = { isEnabled ->
+                        if (isEnabled && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                            notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            viewModel.updateSettings(user?.dailyGoal ?: 20, user?.reminderTime ?: "20:00", isEnabled)
+                        }
                     }
                 )
 
@@ -203,42 +229,196 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Khu vực 4: Nút màu đỏ thực hiện Đăng xuất tài khoản
-                LogoutButton(onClick = { viewModel.logout() })
+                LogoutButton(onClick = { showLogoutDialog = true })
             }
 
+            // Lớp Loading phủ toàn màn hình
             if (uiState.isLoading) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.3f))
-                        .clickable(enabled = false) {},
-                    contentAlignment = Alignment.Center
+                Dialog(
+                    onDismissRequest = { },
+                    properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
                 ) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .background(Color.White, shape = RoundedCornerShape(8.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
         }
     }
 
-    // 7. Hiển thị hộp thoại chọn giờ thông báo (TimePicker giả lập cho người mới học dễ tiếp cận)
+    // 7. Các Dialog chức năng
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Đăng xuất") },
+            text = { Text("Bạn có chắc chắn muốn đăng xuất khỏi tài khoản này không?") },
+            confirmButton = {
+                TextButton(onClick = { 
+                    showLogoutDialog = false
+                    viewModel.logout() 
+                }) {
+                    Text("Đăng xuất", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Hủy")
+                }
+            }
+        )
+    }
+
+    if (showEditNameDialog) {
+        AlertDialog(
+            onDismissRequest = { showEditNameDialog = false },
+            title = { Text("Đổi tên hiển thị") },
+            text = {
+                OutlinedTextField(
+                    value = newName,
+                    onValueChange = { newName = it },
+                    label = { Text("Tên mới") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (newName.isNotBlank()) {
+                        viewModel.updateProfile(newName, user?.goal ?: "", user?.level ?: "")
+                        showEditNameDialog = false
+                    }
+                }) {
+                    Text("Lưu")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditNameDialog = false }) {
+                    Text("Hủy")
+                }
+            }
+        )
+    }
+
+    if (showGoalDialog) {
+        val goals = listOf("IELTS", "TOEIC", "Business", "Travel", "Communication")
+        AlertDialog(
+            onDismissRequest = { showGoalDialog = false },
+            title = { Text("Chọn mục tiêu học tập") },
+            text = {
+                Column {
+                    goals.forEach { goal ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.updateProfile(user?.name ?: "", goal, user?.level ?: "")
+                                    showGoalDialog = false
+                                }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = (user?.goal == goal),
+                                onClick = null
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(goal)
+                        }
+                    }
+                }
+            },
+            confirmButton = {}
+        )
+    }
+
+    if (showLevelDialog) {
+        val levels = listOf("A1", "A2", "B1", "B2", "C1", "C2")
+        AlertDialog(
+            onDismissRequest = { showLevelDialog = false },
+            title = { Text("Chọn trình độ hiện tại") },
+            text = {
+                Column {
+                    levels.forEach { level ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.updateProfile(user?.name ?: "", user?.goal ?: "", level)
+                                    showLevelDialog = false
+                                }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = (user?.level == level),
+                                onClick = null
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(level)
+                        }
+                    }
+                }
+            },
+            confirmButton = {}
+        )
+    }
+
     if (showTimePicker) {
+        val timeState = rememberTimePickerState(
+            initialHour = user?.reminderTime?.split(":")?.get(0)?.toInt() ?: 20,
+            initialMinute = user?.reminderTime?.split(":")?.get(1)?.toInt() ?: 0,
+            is24Hour = true
+        )
+
         AlertDialog(
             onDismissRequest = { showTimePicker = false },
-            title = { Text(text = "Chọn giờ thông báo") },
-            text = { Text(text = "Tính năng chọn giờ học hằng ngày sẽ được tích hợp thông qua TimePickerDialog của Android.") },
             confirmButton = {
+                TextButton(onClick = {
+                    val hour = timeState.hour.toString().padStart(2, '0')
+                    val minute = timeState.minute.toString().padStart(2, '0')
+                    viewModel.updateSettings(user?.dailyGoal ?: 20, "$hour:$minute", user?.pushEnabled ?: true)
+                    showTimePicker = false
+                }) {
+                    Text("Xác nhận", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
                 TextButton(onClick = { showTimePicker = false }) {
-                    Text(text = "Đồng ý")
+                    Text("Hủy")
+                }
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Chọn giờ thông báo",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 20.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    TimePicker(
+                        state = timeState,
+                        colors = TimePickerDefaults.colors(
+                            clockDialColor = MaterialTheme.colorScheme.surfaceVariant,
+                            selectorColor = MaterialTheme.colorScheme.primary,
+                            containerColor = MaterialTheme.colorScheme.surface,
+                        )
+                    )
                 }
             }
         )
     }
 }
 
-// =============================================================================
 // CÁC HÀM COMPOSE THÀNH PHẦN CHI TIẾT (ĐƠN GIẢN HÓA & GHI CHÚ RÕ RÀNG)
-// =============================================================================
-
 /**
  * Vẽ thanh tiêu đề trên cùng (TopBar) cho màn hình Hồ sơ
  */
@@ -294,7 +474,8 @@ private fun UserInfoSection(
     userLevel: String,
     userGoal: String,
     avatarUrl: String?,
-    onEditAvatarClick: () -> Unit
+    onEditAvatarClick: () -> Unit,
+    onEditNameClick: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -302,8 +483,8 @@ private fun UserInfoSection(
     ) {
         // Hộp chứa ảnh đại diện hình tròn và biểu tượng bút chì để chỉnh sửa
         Box(contentAlignment = Alignment.BottomEnd) {
-            if (avatarUrl != null) {
-                // Tải ảnh từ Internet bằng AsyncImage của thư viện Coil
+            if (!avatarUrl.isNullOrEmpty()) {
+                // Tải ảnh: Coil có thể tải trực tiếp từ đường dẫn file local (String path)
                 AsyncImage(
                     model = avatarUrl,
                     contentDescription = "Ảnh đại diện",
@@ -312,6 +493,7 @@ private fun UserInfoSection(
                         .size(96.dp)
                         .clip(CircleShape)
                         .border(4.dp, MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                        .clickable { onEditAvatarClick() }
                 )
             } else {
                 // Nếu chưa có ảnh, hiển thị vòng tròn màu chứa chữ cái đầu tiên của tên người dùng
@@ -320,7 +502,8 @@ private fun UserInfoSection(
                         .size(96.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primaryContainer)
-                        .border(4.dp, MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                        .border(4.dp, MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                        .clickable { onEditAvatarClick() },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -342,7 +525,7 @@ private fun UserInfoSection(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.Edit,
+                    imageVector = Icons.Outlined.PhotoCamera,
                     contentDescription = "Sửa ảnh đại diện",
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(16.dp)
@@ -352,13 +535,25 @@ private fun UserInfoSection(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Hiển thị tên người dùng (In đậm)
-        Text(
-            text = userName,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        // Hiển thị tên người dùng (In đậm) kèm nút sửa
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.clickable { onEditNameClick() }
+        ) {
+            Text(
+                text = userName,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.Outlined.Edit,
+                contentDescription = "Sửa tên",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
 
         // Hiển thị hòm thư email người dùng
         Text(
@@ -428,13 +623,16 @@ private fun UserInfoSection(
 private fun StudySettingsSection(
     dailyGoal: Float,
     onGoalChange: (Float) -> Unit,
-    onGoalChangeFinished: () -> Unit = {},
+    onGoalChangeFinished: (Float) -> Unit = {},
     notificationTime: String,
     onTimeClick: () -> Unit,
     pushEnabled: Boolean,
     onPushToggle: (Boolean) -> Unit,
 
 ) {
+    // Local state for smooth slider interaction
+    var sliderValue by remember(dailyGoal) { mutableFloatStateOf(dailyGoal) }
+
     Card(
         shape = RoundedCornerShape(12.dp), // Bo góc 12dp chuẩn
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -475,7 +673,7 @@ private fun StudySettingsSection(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "${dailyGoal.toInt()} từ",
+                    text = "${sliderValue.toInt()} từ",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary
@@ -484,11 +682,14 @@ private fun StudySettingsSection(
 
             // Thanh trượt Slider thay đổi số từ mục tiêu học từ 5 tới 50 từ
             Slider(
-                value = dailyGoal,
-                onValueChange = onGoalChange,
-                onValueChangeFinished = onGoalChangeFinished,
+                value = sliderValue,
+                onValueChange = { 
+                    sliderValue = it
+                    onGoalChange(it) 
+                },
+                onValueChangeFinished = { onGoalChangeFinished(sliderValue) },
                 valueRange = 5f..50f,
-                steps = 44, // 44 bước tương ứng nhảy từng đơn vị
+                steps = 8, // (50-5)/5 - 1 = 8 steps for 5-unit increments
                 modifier = Modifier.fillMaxWidth(),
                 colors = SliderDefaults.colors(
                     thumbColor = MaterialTheme.colorScheme.primary,

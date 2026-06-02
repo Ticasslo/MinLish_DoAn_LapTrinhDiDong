@@ -5,9 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.englishapp.core.data.model.User
 import com.example.englishapp.features.auth.domain.model.AuthResult
 import com.example.englishapp.features.auth.domain.repository.IAuthRepository
+import com.example.englishapp.features.auth.domain.usecase.LogoutUseCase
 import com.example.englishapp.features.profile.domain.usecase.ChangePasswordUseCase
-import com.example.englishapp.features.profile.domain.usecase.GetUserDataUseCase
-import com.example.englishapp.features.profile.domain.usecase.LogoutUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -27,7 +26,6 @@ data class ProfileUiState(
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val getUserDataUseCase: GetUserDataUseCase,
     private val logoutUseCase: LogoutUseCase,
     private val changePasswordUseCase: ChangePasswordUseCase,
     private val authRepository: IAuthRepository,
@@ -43,24 +41,17 @@ class ProfileViewModel @Inject constructor(
     val isDarkMode: StateFlow<Boolean> = themeManager.isDarkMode
 
     init {
-        loadUserData()
+        observeUserData()
     }
 
-    private fun loadUserData() {
+    private fun observeUserData() {
         viewModelScope.launch {
-            getUserDataUseCase().collect { result ->
-                when (result) {
-                    is AuthResult.Loading -> {
-                        _uiState.update { it.copy(isLoading = true) }
-                    }
-                    is AuthResult.Success -> {
-                        _uiState.update { it.copy(user = result.data, isLoading = false) }
-                    }
-                    is AuthResult.Error -> {
-                        _uiState.update { it.copy(isLoading = false, error = result.message) }
-                    }
+            authRepository.observeCurrentUser()
+                .distinctUntilChanged()
+                .onEach { user ->
+                    _uiState.update { it.copy(user = user, isLoading = false) }
                 }
-            }
+                .launchIn(this)
         }
     }
 
@@ -89,6 +80,27 @@ class ProfileViewModel @Inject constructor(
     }
 
     /**
+     * Cập nhật thông tin profile (Name, Goal, Level)
+     */
+    fun updateProfile(name: String, goal: String, level: String) {
+        viewModelScope.launch {
+            authRepository.updateUserProfile(name, goal, level, _uiState.value.user?.pushEnabled ?: true).collect { result ->
+                when (result) {
+                    is AuthResult.Success -> {
+                        _uiState.update { it.copy(settingsSaved = true, isLoading = false) }
+                    }
+                    is AuthResult.Error -> {
+                        _uiState.update { it.copy(error = result.message, isLoading = false) }
+                    }
+                    is AuthResult.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Lưu cài đặt học tập (dailyGoal, reminderTime, pushEnabled) vào Local + Firestore
      */
     fun updateSettings(dailyGoal: Int, reminderTime: String, pushEnabled: Boolean) {
@@ -96,7 +108,7 @@ class ProfileViewModel @Inject constructor(
             authRepository.updateUserSettings(dailyGoal, reminderTime, pushEnabled).collect { result ->
                 when (result) {
                     is AuthResult.Success -> {
-                        _uiState.update { it.copy(settingsSaved = true) }
+                        _uiState.update { it.copy(settingsSaved = true, isLoading = false) }
                         
                         // Lên lịch hoặc hủy lịch thông báo
                         if (pushEnabled) {
@@ -104,14 +116,13 @@ class ProfileViewModel @Inject constructor(
                         } else {
                             com.example.englishapp.features.notification.worker.NotificationScheduler.cancelDailyReminder(context)
                         }
-                        
-                        // Reload user data để cập nhật UI
-                        loadUserData()
                     }
                     is AuthResult.Error -> {
-                        _uiState.update { it.copy(error = result.message) }
+                        _uiState.update { it.copy(error = result.message, isLoading = false) }
                     }
-                    is AuthResult.Loading -> { /* ignore */ }
+                    is AuthResult.Loading -> { 
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
                 }
             }
         }
@@ -121,24 +132,45 @@ class ProfileViewModel @Inject constructor(
         _uiState.update { it.copy(settingsSaved = false) }
     }
 
+    fun resetError() {
+        _uiState.update { it.copy(error = null) }
+    }
+
     fun setDarkMode(isDark: Boolean) {
         themeManager.setDarkMode(isDark)
     }
 
     fun updateAvatar(uri: String) {
         viewModelScope.launch {
+            // Xóa các file avatar cũ để dọn dẹp bộ nhớ (ngoại trừ file mới vừa chọn)
+            cleanUpOldAvatars(excludePath = uri)
+            
             authRepository.updateUserAvatar(uri).collect { result ->
                 when (result) {
                     is AuthResult.Success -> {
-                        _uiState.update { it.copy(settingsSaved = true) }
-                        loadUserData()
+                        _uiState.update { it.copy(settingsSaved = true, isLoading = false) }
                     }
                     is AuthResult.Error -> {
-                        _uiState.update { it.copy(error = result.message) }
+                        _uiState.update { it.copy(error = result.message, isLoading = false) }
                     }
-                    is AuthResult.Loading -> { /* ignore */ }
+                    is AuthResult.Loading -> {
+                        _uiState.update { it.copy(isLoading = true) }
+                    }
                 }
             }
+        }
+    }
+
+    private fun cleanUpOldAvatars(excludePath: String = "") {
+        try {
+            val files = context.filesDir.listFiles { _, name -> name.startsWith("avatar_") && name.endsWith(".jpg") }
+            files?.forEach { 
+                if (it.absolutePath != excludePath) {
+                    it.delete() 
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -157,7 +189,8 @@ class ProfileViewModel @Inject constructor(
                 syncRepository.syncAll()
                 
                 // 4. Làm mới User UI
-                loadUserData()
+                observeUserData()
+                _uiState.update { it.copy(isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message, isLoading = false) }
             }

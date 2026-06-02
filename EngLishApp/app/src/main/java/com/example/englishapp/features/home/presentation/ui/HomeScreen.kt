@@ -42,9 +42,7 @@ import com.example.englishapp.features.home.domain.model.HomeRecentDeck
 import com.example.englishapp.features.home.domain.model.HomeReviewDeck
 import com.example.englishapp.features.home.presentation.viewmodel.HomeViewModel
 
-// =============================================================================
 // MÀN HÌNH CHÍNH (HOMESCREEN COMPOSABLE)
-// =============================================================================
 @Composable
 fun HomeScreen(
     onNotificationClick: () -> Unit = {},
@@ -55,7 +53,6 @@ fun HomeScreen(
     onRecentClick: (HomeRecentDeck) -> Unit = {},
     onSeeAllClick: () -> Unit = {},
     onNavItemClick: (Int) -> Unit = {},
-    onAddClick: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     // 1. Thu thập trạng thái UI từ ViewModel bằng collectAsState
@@ -162,9 +159,7 @@ fun HomeScreen(
 }
 
 
-// =============================================================================
 // CÁC HÀM COMPOSE THÀNH PHẦN CHI TIẾT (DỄ HIỂU, DỄ QUẢN LÝ)
-// =============================================================================
 
 /**
  * Hàm vẽ Thanh tiêu đề trên cùng (TopBar)
@@ -729,10 +724,7 @@ private fun RecentSection(
     }
 }
 
-// =============================================================================
 // HÀM TIỆN ÍCH (UTILITY FUNCTIONS)
-// =============================================================================
-
 /**
  * Chọn icon dựa trên tag đầu tiên của bộ từ vựng.
  * Nếu không khớp tag nào → trả về icon sách mặc định.

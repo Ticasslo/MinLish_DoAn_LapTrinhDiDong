@@ -110,9 +110,9 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun updateUserProfile(goal: String, level: String, pushEnabled: Boolean) {
+    fun updateUserProfile(name: String, goal: String, level: String, pushEnabled: Boolean) {
         viewModelScope.launch {
-            updateProfileUseCase(goal, level, pushEnabled).collect { result ->
+            updateProfileUseCase(name, goal, level, pushEnabled).collect { result ->
                 _uiState.update { it.copy(
                     updateProfileResult = result,
                     isLoading = result is AuthResult.Loading

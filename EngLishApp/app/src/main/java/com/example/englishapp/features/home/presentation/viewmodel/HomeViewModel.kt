@@ -3,7 +3,6 @@ package com.example.englishapp.features.home.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.englishapp.core.data.model.User
-import com.example.englishapp.features.auth.domain.model.AuthResult
 import com.example.englishapp.features.auth.domain.repository.IAuthRepository
 import com.example.englishapp.core.data.repository.SyncRepository
 import com.example.englishapp.features.home.domain.model.HomeNewWordDeck
@@ -31,8 +30,7 @@ data class HomeUiState(
     val dueWordsCount: Int = 0,
     val reviewDecks: List<HomeReviewDeck> = emptyList(),
     val newWordDecks: List<HomeNewWordDeck> = emptyList(),
-    val recentDecks: List<HomeRecentDeck> = emptyList(),
-    val isSyncing: Boolean = false
+    val recentDecks: List<HomeRecentDeck> = emptyList()
 )
 
 @HiltViewModel
@@ -56,44 +54,32 @@ class HomeViewModel @Inject constructor(
 
     private fun triggerSync() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isSyncing = true) }
             try {
                 syncRepository.syncAll()
             } catch (e: Exception) {
                 // Có thể log lỗi ở đây nhưng không làm gián đoạn trải nghiệm offline
-            } finally {
-                _uiState.update { it.copy(isSyncing = false) }
             }
         }
     }
 
     private fun loadUserData() {
-        val currentUser = authRepository.getCurrentUser()
-        if (currentUser != null) {
-            viewModelScope.launch {
-                authRepository.getUserData(currentUser.userId).collectLatest { result ->
-                    when (result) {
-                        is AuthResult.Loading -> {
-                            _uiState.update { it.copy(isLoading = true) }
-                        }
-                        is AuthResult.Success -> {
-                            _uiState.update { it.copy(
-                                user = result.data,
-                                wordGoal = result.data.dailyGoal
-                            ) }
-                            startObservingData(result.data.userId)
-                        }
-                        is AuthResult.Error -> {
-                            _uiState.update { it.copy(
-                                isLoading = false,
-                                error = result.message
-                            ) }
-                        }
+        viewModelScope.launch {
+            authRepository.observeCurrentUser().collect { user ->
+                if (user != null) {
+                    val currentUserId = _uiState.value.user?.userId
+                    _uiState.update { it.copy(
+                        user = user,
+                        wordGoal = user.dailyGoal
+                    ) }
+                    
+                    // Chỉ bắt đầu quan sát dữ liệu học tập nếu là user mới hoặc lần đầu load
+                    if (user.userId != currentUserId) {
+                        startObservingData(user.userId)
                     }
+                } else {
+                    _uiState.update { it.copy(isLoading = false, user = null) }
                 }
             }
-        } else {
-            _uiState.update { it.copy(isLoading = false) }
         }
     }
 

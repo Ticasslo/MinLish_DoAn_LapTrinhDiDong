@@ -52,7 +52,7 @@ fun InitialSetupScreen(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         // Cập nhật trạng thái vào DB và Server
-        viewModel.updateUserProfile(selectedGoal, selectedLevel, isGranted)
+        viewModel.updateUserProfile(userName, selectedGoal, selectedLevel, isGranted)
     }
 
     LaunchedEffect(updateState) {
@@ -168,11 +168,11 @@ fun InitialSetupScreen(
                         if (status != PackageManager.PERMISSION_GRANTED) {
                             permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
                         } else {
-                            viewModel.updateUserProfile(selectedGoal, selectedLevel, true)
+                            viewModel.updateUserProfile(userName, selectedGoal, selectedLevel, true)
                         }
                     } else {
                         // Android cũ hơn thì mặc định là true (vì quyền được cấp lúc cài đặt)
-                        viewModel.updateUserProfile(selectedGoal, selectedLevel, true)
+                        viewModel.updateUserProfile(userName, selectedGoal, selectedLevel, true)
                     }
                 }
             },

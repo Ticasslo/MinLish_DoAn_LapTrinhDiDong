@@ -129,9 +129,11 @@ class SyncRepository @Inject constructor(
     // --- LOGIC ĐẨY DỮ LIỆU (PUSH) ---
 
     private suspend fun syncUserProfile(userId: String) {
-        val user = userDao.getCurrentUser() ?: return
-        if (user.userId == userId && !user.isSynced) {
-            safeNetworkCall { firebaseService.saveUser(user.toDomain()) }
+        val userEntity = userDao.getCurrentUser() ?: return
+        if (userEntity.userId == userId && !userEntity.isSynced) {
+            val userToSync = userEntity.toDomain()
+            
+            safeNetworkCall { firebaseService.saveUser(userToSync) }
                 .onSuccess { userDao.markUserAsSynced(userId) }
         }
     }

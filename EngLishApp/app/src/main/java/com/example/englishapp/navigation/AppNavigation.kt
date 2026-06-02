@@ -106,7 +106,6 @@ fun AppNavigation(
                 },
                 onReviewClick = { deck -> navController.navigate(Screen.VocabList.createRoute(deck.setId)) },
                 onLearnClick = { deck -> navController.navigate(Screen.VocabList.createRoute(deck.setId)) },
-                onAddClick = { navController.navigate(Screen.CreateSet.route) },
                 onDetailClick = { navController.navigate(Screen.Progress.route) },
                 onRecentClick = { deck -> navController.navigate(Screen.VocabList.createRoute(deck.setId)) },
                 onSeeAllClick = { navController.navigate(Screen.MySets.route) },

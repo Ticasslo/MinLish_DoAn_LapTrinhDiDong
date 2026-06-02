@@ -23,8 +23,8 @@ interface IAuthRepository {
     // Quên mật khẩu
     fun sendPasswordResetEmail(email: String): Flow<AuthResult<Unit>>
 
-    // Cập nhật thông tin profile (Goal, Level, Notifications)
-    fun updateUserProfile(goal: String, level: String, pushEnabled: Boolean): Flow<AuthResult<Unit>>
+    // Cập nhật thông tin profile (Name, Goal, Level, Notifications)
+    fun updateUserProfile(name: String, goal: String, level: String, pushEnabled: Boolean): Flow<AuthResult<Unit>>
 
     // Lấy đầy đủ thông tin User từ Firestore
     fun getUserData(uid: String): Flow<AuthResult<User>>
