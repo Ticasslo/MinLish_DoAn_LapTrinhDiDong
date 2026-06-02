@@ -6,6 +6,9 @@ import com.example.englishapp.core.data.local.entity.StreakEntity
 @Dao
 interface StreakDao {
     @Query("SELECT * FROM streaks WHERE userId = :userId")
+    fun observeStreak(userId: String): kotlinx.coroutines.flow.Flow<StreakEntity?>
+
+    @Query("SELECT * FROM streaks WHERE userId = :userId")
     suspend fun getStreak(userId: String): StreakEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

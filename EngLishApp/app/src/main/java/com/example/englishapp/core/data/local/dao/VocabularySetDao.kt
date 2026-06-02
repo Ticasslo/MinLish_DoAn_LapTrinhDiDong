@@ -27,6 +27,9 @@ interface VocabularySetDao {
     @Query("UPDATE vocabulary_sets SET isSynced = 1 WHERE setId = :setId")
     suspend fun markAsSynced(setId: String)
 
+    @Query("SELECT * FROM vocabulary_sets WHERE setId IN (:setIds)")
+    fun observeSetsByIds(setIds: List<String>): Flow<List<VocabularySetEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSet(set: VocabularySetEntity)
 
