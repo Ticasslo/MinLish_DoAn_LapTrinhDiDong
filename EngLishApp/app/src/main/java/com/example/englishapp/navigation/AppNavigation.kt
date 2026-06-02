@@ -97,6 +97,13 @@ fun AppNavigation(
         composable(route = Screen.Home.route) {
             HomeScreen(
                 onNotificationClick = { navController.navigate(Screen.Notification.route) },
+                onProfileClick = {
+                    navController.navigate(Screen.Profile.route) {
+                        popUpTo(Screen.Home.route) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
                 onReviewClick = { deck -> navController.navigate(Screen.VocabList.createRoute(deck.setId)) },
                 onLearnClick = { deck -> navController.navigate(Screen.VocabList.createRoute(deck.setId)) },
                 onAddClick = { navController.navigate(Screen.CreateSet.route) },
@@ -127,17 +134,20 @@ fun AppNavigation(
                 onBackClick = { navController.popBackStack() },
                 onNotificationClick = { navController.navigate(Screen.Notification.route) },
                 onNavItemClick = { index ->
-                    val route = when (index) {
-                        0 -> Screen.Home.route
-                        1 -> Screen.MySets.route
-                        3 -> Screen.Profile.route
-                        else -> null
-                    }
-                    route?.let {
-                        navController.navigate(it) {
-                            popUpTo(Screen.Home.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
+                    if (index == 0) {
+                        navController.popBackStack(Screen.Home.route, inclusive = false)
+                    } else {
+                        val route = when (index) {
+                            1 -> Screen.MySets.route
+                            3 -> Screen.Profile.route
+                            else -> null
+                        }
+                        route?.let {
+                            navController.navigate(it) {
+                                popUpTo(Screen.Home.route) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     }
                 }
@@ -148,7 +158,7 @@ fun AppNavigation(
         composable(route = Screen.Notification.route) {
             NotificationScreen(
                 onBackClick = { navController.popBackStack() },
-                onActionClick = { 
+                onActionClick = {
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
@@ -160,17 +170,20 @@ fun AppNavigation(
         composable(route = Screen.Profile.route) {
             ProfileScreen(
                 onNavItemClick = { index ->
-                    val route = when (index) {
-                        0 -> Screen.Home.route
-                        1 -> Screen.MySets.route
-                        2 -> Screen.Progress.route
-                        else -> null
-                    }
-                    route?.let {
-                        navController.navigate(it) {
-                            popUpTo(Screen.Home.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
+                    if (index == 0) {
+                        navController.popBackStack(Screen.Home.route, inclusive = false)
+                    } else {
+                        val route = when (index) {
+                            1 -> Screen.MySets.route
+                            2 -> Screen.Progress.route
+                            else -> null
+                        }
+                        route?.let {
+                            navController.navigate(it) {
+                                popUpTo(Screen.Home.route) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     }
                 },
@@ -203,17 +216,21 @@ fun AppNavigation(
             ChangePasswordScreen(
                 onBackClick = { navController.popBackStack() },
                 onNavItemClick = { index ->
-                    val route = when (index) {
-                        0 -> Screen.Home.route
-                        1 -> Screen.MySets.route
-                        2 -> Screen.Progress.route
-                        else -> null
-                    }
-                    route?.let {
-                        navController.navigate(it) {
-                            popUpTo(Screen.Home.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
+                    if (index == 0) {
+                        navController.popBackStack(Screen.Home.route, inclusive = false)
+                    } else {
+                        val route = when (index) {
+                            1 -> Screen.MySets.route
+                            2 -> Screen.Progress.route
+                            3 -> Screen.Profile.route
+                            else -> null
+                        }
+                        route?.let {
+                            navController.navigate(it) {
+                                popUpTo(Screen.Home.route) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     }
                 }
@@ -270,21 +287,24 @@ fun AppNavigation(
                 onCreateSetClick = {
                     navController.navigate(Screen.CreateSet.route)
                 },
-                onNotificationClick = { 
-                    navController.navigate(Screen.Notification.route) 
+                onNotificationClick = {
+                    navController.navigate(Screen.Notification.route)
                 },
                 onNavItemClick = { index ->
-                    val route = when (index) {
-                        0 -> Screen.Home.route
-                        2 -> Screen.Progress.route
-                        3 -> Screen.Profile.route
-                        else -> null
-                    }
-                    route?.let {
-                        navController.navigate(it) {
-                            popUpTo(Screen.Home.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
+                    if (index == 0) {
+                        navController.popBackStack(Screen.Home.route, inclusive = false)
+                    } else {
+                        val route = when (index) {
+                            2 -> Screen.Progress.route
+                            3 -> Screen.Profile.route
+                            else -> null
+                        }
+                        route?.let {
+                            navController.navigate(it) {
+                                popUpTo(Screen.Home.route) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     }
                 }
