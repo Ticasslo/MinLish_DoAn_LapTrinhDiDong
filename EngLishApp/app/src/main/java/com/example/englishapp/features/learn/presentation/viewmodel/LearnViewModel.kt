@@ -18,6 +18,7 @@ data class LearnUiState(
     val sessionType: String = "review",
     val isLoading: Boolean = false,
     val cards: List<Pair<SrsCard, Word>> = emptyList(),
+    val totalOriginalCards: Int = 0, // Thêm dòng này: Mục tiêu ban đầu (ví dụ: 5 từ)
     val currentIndex: Int = 0,
     val isFlipped: Boolean = false,
     val isSessionComplete: Boolean = false,
@@ -65,6 +66,7 @@ class LearnViewModel @Inject constructor(
                         it.copy(
                             isLoading = false, 
                             cards = cardsWithWords,
+                            totalOriginalCards = cardsWithWords.size, // LƯU SỐ LƯỢNG GỐC
                             isSessionComplete = cardsWithWords.isEmpty()
                         )
                     }
@@ -75,7 +77,13 @@ class LearnViewModel @Inject constructor(
                         val word = repository.getWordById(card.wordId)
                         if (word != null) card to word else null
                     }
-                    _uiState.update { it.copy(isLoading = false, cards = cardsWithWords) }
+                    _uiState.update { 
+                        it.copy(
+                            isLoading = false, 
+                            cards = cardsWithWords,
+                            totalOriginalCards = cardsWithWords.size // LƯU SỐ LƯỢNG GỐC
+                        ) 
+                    }
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
@@ -98,9 +106,9 @@ class LearnViewModel @Inject constructor(
             val updatedCards = state.cards.toMutableList()
             val r = rating.lowercase()
             val isCorrect = r != "again"
-            
+
             val updatedStats = state.sessionStats.copy(
-                totalStudied = state.sessionStats.totalStudied + 1,
+                totalStudied = state.sessionStats.totalStudied + (if (isCorrect) 1 else 0),
                 correctCount = if (isCorrect) state.sessionStats.correctCount + 1 else state.sessionStats.correctCount,
                 againCount = state.sessionStats.againCount + if (r == "again") 1 else 0,
                 hardCount = state.sessionStats.hardCount + if (r == "hard") 1 else 0,
@@ -142,6 +150,7 @@ class LearnViewModel @Inject constructor(
         val userId = getCurrentUserUseCase()?.userId ?: return
         
         viewModelScope.launch {
+            val totalAttempts = stats.correctCount + stats.againCount
             val session = com.example.englishapp.core.data.model.StudySession(
                 sessionId = java.util.UUID.randomUUID().toString(),
                 userId = userId,
@@ -149,7 +158,7 @@ class LearnViewModel @Inject constructor(
                 date = System.currentTimeMillis(),
                 duration = ((System.currentTimeMillis() - stats.startTime) / 1000).toInt(),
                 wordsStudied = stats.totalStudied,
-                accuracy = if (stats.totalStudied > 0) ((stats.goodCount + stats.easyCount).toDouble() / stats.totalStudied) * 100.0 else 0.0,
+                accuracy = if (totalAttempts > 0) (stats.correctCount.toDouble() / totalAttempts) * 100.0 else 0.0,
                 againCount = stats.againCount,
                 hardCount = stats.hardCount,
                 goodCount = stats.goodCount,

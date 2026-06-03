@@ -64,7 +64,7 @@ fun FlashcardScreen(
     }
 
     LaunchedEffect(uiState.isSessionComplete) {
-        if (uiState.isSessionComplete) {
+        if (uiState.isSessionComplete && uiState.sessionStats.totalStudied > 0) {
             onSessionComplete()
         }
     }
@@ -84,8 +84,15 @@ fun FlashcardScreen(
                     }
                 },
                 actions = {
+                    val remaining = uiState.cards.size - uiState.currentIndex
+                    val total = uiState.totalOriginalCards
+
+                    val currentDisplayIndex = if (total > 0) {
+                        (total - remaining + 1).coerceIn(1, total)
+                    } else 0
+
                     Text(
-                        text = "${uiState.currentIndex + 1}/${uiState.cards.size}",
+                        text = "$currentDisplayIndex/$total",
                         modifier = Modifier.padding(end = 16.dp),
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -103,9 +110,13 @@ fun FlashcardScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Progress Bar
+            // Thanh tiến trình cũng tính theo con số thực tế đã hoàn thành
+            val remaining = uiState.cards.size - uiState.currentIndex
+            val completedCount = (uiState.totalOriginalCards - remaining).coerceAtLeast(0)
+            val progress = if (uiState.totalOriginalCards > 0) completedCount.toFloat() / uiState.totalOriginalCards else 0f
+
             LinearProgressIndicator(
-                progress = if (uiState.cards.isEmpty()) 0f else (uiState.currentIndex + 1).toFloat() / uiState.cards.size,
+                progress = progress,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
@@ -150,7 +161,29 @@ fun FlashcardScreen(
                     )
                 }
             } else if (!uiState.isLoading && uiState.cards.isEmpty()) {
-                Text(text = "Không có từ nào cần học!")
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Tuyệt vời! 🎉",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Bạn đã hoàn thành hết các từ cần ôn tập của ngày hôm nay.",
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Button(onClick = onBackClick) {
+                            Text("Quay lại")
+                        }
+                    }
+                }
             }
         }
     }

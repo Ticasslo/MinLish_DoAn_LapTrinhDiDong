@@ -30,8 +30,10 @@ fun SessionCompleteScreen(
     onHomeClick: () -> Unit
 ) {
     val durationMinutes = ((System.currentTimeMillis() - stats.startTime) / 60000.0).roundToInt().coerceAtLeast(1)
-    val accuracy = if (stats.totalStudied > 0) {
-        (stats.correctCount.toFloat() / stats.totalStudied * 100).roundToInt()
+
+    val totalAttempts = stats.correctCount + stats.againCount
+    val accuracy = if (totalAttempts > 0) {
+        (stats.correctCount.toFloat() / totalAttempts * 100).roundToInt()
     } else 0
 
     // Load hiệu ứng pháo hoa từ file của bạn
