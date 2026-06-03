@@ -33,7 +33,7 @@ fun AddWordBottomSheet(
     onDeleteWord: () -> Unit,
     onLookupWord: (wordText: String, onResult: (phonetic: String?, definition: String?, example: String?) -> Unit) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     
     // Khởi tạo các trạng thái trường nhập liệu dựa trên initial values (có thể từ prefill)
     var wordVal by remember { mutableStateOf(initialWord) }
@@ -47,7 +47,7 @@ fun AddWordBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-        modifier = Modifier.fillMaxHeight(0.85f)
+        containerColor = MaterialTheme.colorScheme.surface
     ) {
         Column(
             modifier = Modifier

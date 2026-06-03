@@ -123,14 +123,16 @@ fun FlashcardScreen(
                 val word = currentPair.second
 
                 // Flashcard View với hiệu ứng lật 3D
-                FlashcardItem(
-                    word = word,
-                    isFlipped = uiState.isFlipped,
-                    onFlip = viewModel::onFlip,
-                    onSpeak = {
-                        tts?.speak(word.word, TextToSpeech.QUEUE_FLUSH, null, null)
-                    }
-                )
+                key(uiState.currentIndex) {
+                    FlashcardItem(
+                        word = word,
+                        isFlipped = uiState.isFlipped,
+                        onFlip = viewModel::onFlip,
+                        onSpeak = {
+                            tts?.speak(word.word, TextToSpeech.QUEUE_FLUSH, null, null)
+                        }
+                    )
+                }
 
                 Spacer(modifier = Modifier.weight(1f))
 
@@ -176,7 +178,7 @@ fun FlashcardItem(
             }
             .clickable(onClick = onFlip)
             .background(
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(20.dp)
             )
             .padding(16.dp),
@@ -191,7 +193,7 @@ fun FlashcardItem(
                     text = word.word,
                     fontSize = 36.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF1A1D3B)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 
                 word.pronunciation?.let {
@@ -202,13 +204,13 @@ fun FlashcardItem(
                         Text(
                             text = it,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.Gray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         IconButton(onClick = onSpeak) {
                             Icon(
                                 imageVector = Icons.Default.PlayArrow,
                                 contentDescription = "Speak",
-                                tint = Color(0xFF3D5AFE)
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
@@ -224,7 +226,7 @@ fun FlashcardItem(
                     text = word.meaning,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF3D5AFE),
+                    color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center
                 )
                 
@@ -232,7 +234,7 @@ fun FlashcardItem(
                     Text(
                         text = it,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp),
                         textAlign = TextAlign.Center
                     )
