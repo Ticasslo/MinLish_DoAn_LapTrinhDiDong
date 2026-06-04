@@ -121,6 +121,8 @@ class VocabRepository @Inject constructor(
         syncItem(
             localOp = {
                 wordDao.upsertWord(word.toEntity().copy(isSynced = false))
+                // Tự động tính toán lại chỉ số sau khi thêm từ
+                recalculateSetCounts(word.setId, word.userId)
             },
             remoteOp = {
                 firebaseService.saveWord(word)
@@ -137,6 +139,8 @@ class VocabRepository @Inject constructor(
             localOp = {
                 wordDao.deleteWord(word.toEntity())
                 srsCardDao.deleteCardByWordId(word.wordId)
+                // Tự động tính toán lại chỉ số sau khi xóa từ
+                recalculateSetCounts(word.setId, word.userId)
             },
             remoteOp = {
                 firebaseService.wordsCollection.document(word.wordId).delete().await()

@@ -8,6 +8,7 @@ import com.example.englishapp.features.auth.domain.usecase.GetCurrentUserUseCase
 import com.example.englishapp.features.learn.domain.repository.ILearnRepository
 import com.example.englishapp.features.learn.domain.usecase.CalculateSrsUseCase
 import com.example.englishapp.features.learn.domain.usecase.GetDueCardsUseCase
+import com.example.englishapp.features.vocab.domain.repository.IVocabRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -41,7 +42,8 @@ class LearnViewModel @Inject constructor(
     private val getDueCardsUseCase: GetDueCardsUseCase,
     private val calculateSrsUseCase: CalculateSrsUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
-    private val repository: ILearnRepository
+    private val repository: ILearnRepository,
+    private val vocabRepository: IVocabRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LearnUiState(sessionStats = SessionStats()))
@@ -100,6 +102,10 @@ class LearnViewModel @Inject constructor(
             val updatedCard = calculateSrsUseCase(currentPair.first, rating)
             repository.updateSrsCard(updatedCard)
             
+            // Cập nhật lại chỉ số cho VocabularySet ngay lập tức để Home/Library update kịp thời
+            val userId = getCurrentUserUseCase()?.userId ?: ""
+            vocabRepository.recalculateSetCounts(state.setId, userId)
+
             val updatedCards = state.cards.toMutableList()
             val r = rating.lowercase()
             val isCorrect = r != "again"
@@ -163,6 +169,8 @@ class LearnViewModel @Inject constructor(
                 sessionType = state.sessionType
             )
             repository.saveStudySession(session)
+            // Cập nhật lại các chỉ số cho VocabularySet (masteredCount, learningCount, ...)
+            vocabRepository.recalculateSetCounts(state.setId, userId)
         }
     }
 }
