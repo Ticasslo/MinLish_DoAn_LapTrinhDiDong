@@ -2,6 +2,8 @@ package com.example.englishapp.features.notification.presentation.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -90,52 +92,49 @@ fun NotificationItem(
     onClick: () -> Unit,
     onActionClick: () -> Unit
 ) {
-    val backgroundColor = if (notification.isRead) {
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-    } else {
-        MaterialTheme.colorScheme.surface
-    }
+    // Nếu đã đọc thì màu nhạt hẳn đi
+    val contentAlpha = if (notification.isRead) 0.6f else 1.0f
 
-    Card(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (notification.isRead) 0.dp else 2.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick
+            )
+            .padding(vertical = 8.dp)
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Unread indicator & Icon
-            Box(contentAlignment = Alignment.Center) {
+            // Icon với chấm (Unread)
+            Box {
                 NotificationIcon(notification.type)
                 if (!notification.isRead) {
                     Box(
                         modifier = Modifier
-                            .size(8.dp)
+                            .size(10.dp)
                             .align(Alignment.TopStart)
-                            .offset(x = (-4).dp, y = (-4).dp)
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primary)
                     )
                 }
             }
 
+            // Nội dung chính
             Column(modifier = Modifier.weight(1f)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
                         text = notification.title,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = if (notification.isRead) FontWeight.SemiBold else FontWeight.Bold,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
@@ -143,27 +142,27 @@ fun NotificationItem(
                     Text(
                         text = formatTimestamp(notification.timestamp),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.outline
                     )
                 }
-                
-                Spacer(modifier = Modifier.height(4.dp))
                 
                 Text(
                     text = notification.message,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha),
+                    modifier = Modifier.padding(top = 4.dp)
                 )
 
                 if (notification.type == NotificationType.REVIEW_REMINDER && !notification.isRead) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Button(
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedButton(
                         onClick = onActionClick,
                         shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        modifier = Modifier.height(36.dp)
+                        modifier = Modifier.height(36.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
                     ) {
                         Icon(Icons.Default.School, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(8.dp))
@@ -172,6 +171,8 @@ fun NotificationItem(
                 }
             }
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     }
 }
 

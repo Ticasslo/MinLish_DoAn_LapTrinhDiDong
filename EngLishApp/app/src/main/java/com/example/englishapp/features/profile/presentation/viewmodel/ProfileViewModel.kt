@@ -60,6 +60,8 @@ class ProfileViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             try {
                 logoutUseCase()
+                com.example.englishapp.features.notification.worker.NotificationScheduler.cancelDailyReminder(context)
+                com.example.englishapp.features.notification.worker.NotificationScheduler.cancelReviewDueNotification(context)
                 _uiState.update { it.copy(isLoggedOut = true, isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = "Đăng xuất thất bại: ${e.message}", isLoading = false) }
@@ -113,8 +115,10 @@ class ProfileViewModel @Inject constructor(
                         // Lên lịch hoặc hủy lịch thông báo
                         if (pushEnabled) {
                             com.example.englishapp.features.notification.worker.NotificationScheduler.scheduleDailyReminder(context, reminderTime)
+                            com.example.englishapp.features.notification.worker.NotificationScheduler.scheduleReviewDueNotification(context)
                         } else {
                             com.example.englishapp.features.notification.worker.NotificationScheduler.cancelDailyReminder(context)
+                            com.example.englishapp.features.notification.worker.NotificationScheduler.cancelReviewDueNotification(context)
                         }
                     }
                     is AuthResult.Error -> {

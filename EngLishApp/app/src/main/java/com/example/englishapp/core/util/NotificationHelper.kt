@@ -31,18 +31,31 @@ class NotificationHelper(
             val notificationManager: NotificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
+            // Cấu hình âm thanh mặc định của hệ thống
+            val audioAttributes = android.media.AudioAttributes.Builder()
+                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
+                .build()
+            val soundUri = android.provider.Settings.System.DEFAULT_NOTIFICATION_URI
+
             val dailyChannel = NotificationChannel(
                 DAILY_REMINDER_CHANNEL_ID,
                 "Nhắc nhở hàng ngày",
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                setSound(soundUri, audioAttributes)
+                enableVibration(false)
+            }
             notificationManager.createNotificationChannel(dailyChannel)
 
             val reviewChannel = NotificationChannel(
                 REVIEW_DUE_CHANNEL_ID,
                 "Ôn tập đến hạn",
                 NotificationManager.IMPORTANCE_HIGH
-            )
+            ).apply {
+                setSound(soundUri, audioAttributes)
+                enableVibration(false)
+            }
             notificationManager.createNotificationChannel(reviewChannel)
         }
     }
