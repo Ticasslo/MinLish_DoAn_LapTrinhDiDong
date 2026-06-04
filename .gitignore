@@ -15,6 +15,7 @@ captures/
 *.aab
 *.apk
 output-metadata.json
+!EngLishApp/app/release/*.apk
 
 # IntelliJ
 *.iml
@@ -29,3 +30,6 @@ render.experimental.xml
 
 # Android Profiling
 *.hprof
+
+# Ignore keystore files
+**/keystore/*

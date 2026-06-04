@@ -24,8 +24,18 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("D:/UTE_LapTrinhDiDong/MinLish_DoAn_LapTrinhDiDong/EngLishApp/keystore/min_lish")
+            storePassword = "MINlish123"
+            keyAlias = "key0"
+            keyPassword = "MINlish123"
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
