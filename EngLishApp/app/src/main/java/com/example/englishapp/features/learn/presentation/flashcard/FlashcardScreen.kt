@@ -1,6 +1,10 @@
 package com.example.englishapp.features.learn.presentation.flashcard
 
-import android.speech.tts.TextToSpeech
+import android.media.AudioAttributes
+import android.media.MediaPlayer
+import android.widget.Toast
+import com.example.englishapp.core.util.AudioUtils
+import android.util.Log
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -39,23 +43,35 @@ fun FlashcardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    
-    // Khởi tạo TextToSpeech
-    val tts = remember {
-        var ttsInstance: TextToSpeech? = null
-        ttsInstance = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                ttsInstance?.language = Locale.US
-            }
-        }
-        ttsInstance
-    }
+    val mediaPlayer = remember { MediaPlayer() }
 
-    // Giải phóng TTS khi không dùng nữa
+    // Giải phóng MediaPlayer khi rời màn hình
     DisposableEffect(Unit) {
         onDispose {
-            tts?.stop()
-            tts?.shutdown()
+            mediaPlayer.release()
+        }
+    }
+
+    // Hàm phát âm sử dụng Google Translate TTS API
+    fun playAudio(url: String) {
+        try {
+            mediaPlayer.reset()
+            mediaPlayer.setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .build()
+            )
+            mediaPlayer.setDataSource(url)
+            mediaPlayer.prepareAsync()
+            mediaPlayer.setOnPreparedListener { it.start() }
+            mediaPlayer.setOnErrorListener { _, what, extra ->
+                Log.e("AudioError", "MediaPlayer error: $what, $extra")
+                true
+            }
+        } catch (e: Exception) {
+            Log.e("AudioError", "Lỗi phát âm: ${e.message}")
+            Toast.makeText(context, "Không thể phát âm", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -96,9 +112,6 @@ fun FlashcardScreen(
                         modifier = Modifier.padding(end = 16.dp),
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    IconButton(onClick = { /* TODO: Settings */ }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
-                    }
                 }
             )
         }
@@ -140,7 +153,7 @@ fun FlashcardScreen(
                         isFlipped = uiState.isFlipped,
                         onFlip = viewModel::onFlip,
                         onSpeak = {
-                            tts?.speak(word.word, TextToSpeech.QUEUE_FLUSH, null, null)
+                            playAudio(AudioUtils.getGoogleTtsUrl(word.word))
                         }
                     )
                 }
