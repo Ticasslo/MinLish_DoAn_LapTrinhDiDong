@@ -1,6 +1,9 @@
 package com.example.englishapp.features.vocab.presentation.vocab_list
 
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -14,13 +17,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.*
@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.englishapp.core.data.model.Word
+import com.example.englishapp.features.vocab.presentation.vocab_list.AddWordBottomSheet
 import com.example.englishapp.features.vocab.presentation.create_edit.ImportPreviewBottomSheet
 import com.example.englishapp.features.vocab.presentation.model.WordUiItem
 import com.example.englishapp.features.vocab.presentation.viewmodel.VocabViewModel
@@ -81,10 +82,62 @@ fun VocabListScreen(
             showAddWordSheet = true
         }
     }
-    
+
     // Trạng thái hiển thị Import/Export CSV dialog
     var showImportSheet by remember { mutableStateOf(false) }
     var csvContentToImport by remember { mutableStateOf("") }
+    var showImportInstruction by remember { mutableStateOf(false) }
+
+    // Launcher để chọn file CSV thật từ thiết bị
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            val content = context.contentResolver.openInputStream(it)?.bufferedReader()?.use { reader ->
+                reader.readText()
+            } ?: ""
+            csvContentToImport = content
+            showImportSheet = true
+        }
+    }
+
+    // Launcher để lưu file CSV thật xuống thiết bị
+    val saveFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("text/csv")
+    ) { uri: Uri? ->
+        uri?.let {
+            viewModel.exportCsv { csv ->
+                if (csv.isNotBlank()) {
+                    context.contentResolver.openOutputStream(it)?.use { outputStream ->
+                        outputStream.write(csv.toByteArray())
+                    }
+                    Toast.makeText(context, "Đã lưu file thành công!", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(context, "Bộ từ trống, không thể xuất CSV.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+    
+    // Dialog hướng dẫn import
+    if (showImportInstruction) {
+        AlertDialog(
+            onDismissRequest = { showImportInstruction = false },
+            title = { Text("Hướng dẫn Import CSV") },
+            text = {
+                Text("Vui lòng chuẩn bị file CSV với định dạng các cột theo thứ tự:\n\n1. Từ vựng\n2. Định nghĩa\n3. Phiên âm\n\nBạn có muốn tiếp tục chọn file không?")
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showImportInstruction = false
+                    filePickerLauncher.launch("text/*")
+                }) { Text("Chọn file") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showImportInstruction = false }) { Text("Hủy") }
+            }
+        )
+    }
     
     // Khởi tạo và nạp dữ liệu bộ từ vựng khi mở màn hình
     LaunchedEffect(setId) {
@@ -99,22 +152,10 @@ fun VocabListScreen(
                 onBackClick = onBackClick,
                 onLookupOnlineClick = onLookupOnlineClick,
                 onExportClick = {
-                    viewModel.exportCsv { csv ->
-                        if (csv.isNotBlank()) {
-                            // Copy CSV to clipboard or show toast
-                            val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                            val clip = android.content.ClipData.newPlainText("Vocab CSV", csv)
-                            clipboard.setPrimaryClip(clip)
-                            Toast.makeText(context, "Đã xuất dữ liệu và copy CSV vào bộ nhớ đệm!", Toast.LENGTH_SHORT).show()
-                        } else {
-                            Toast.makeText(context, "Bộ từ trống, không thể xuất CSV.", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    saveFileLauncher.launch("vocab_export_${System.currentTimeMillis()}.csv")
                 },
                 onImportClick = {
-                    // Để giả lập, ta hiển thị input CSV thô cho người dùng
-                    csvContentToImport = "Resilient,Kiên cường có khả năng phục hồi nhanh,/rɪˈzɪl.jənt/\nProlific,Sáng tác nhiều hiệu suất cao,/prəˈlɪf.ɪk/\nUbiquitous,Có mặt ở khắp mọi nơi,/juːˈbɪk.wɪ.təs/"
-                    showImportSheet = true
+                    showImportInstruction = true
                 }
             )
         },
@@ -321,7 +362,7 @@ private fun VocabListTopBar(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            
+
             Row {
                 // Nút tra cứu từ điển
                 IconButton(onClick = onLookupOnlineClick) {
@@ -331,14 +372,7 @@ private fun VocabListTopBar(
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
-                IconButton(onClick = onImportClick) {
-                    Icon(
-                        imageVector = Icons.Default.Edit, // Tượng trưng cho thêm hàng loạt
-                        contentDescription = "Nhập CSV",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                
+
                 Box {
                     IconButton(onClick = { showMenu = true }) {
                         Icon(
@@ -359,7 +393,7 @@ private fun VocabListTopBar(
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Import CSV (Mẫu)") },
+                            text = { Text("Import CSV") },
                             onClick = {
                                 showMenu = false
                                 onImportClick()
@@ -466,7 +500,7 @@ private fun VocabStatsHeader(
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("Học ngay", fontWeight = FontWeight.Bold)
                 }
-                
+
                 Button(
                     onClick = onReviewClick,
                     shape = RoundedCornerShape(12.dp),
@@ -518,7 +552,7 @@ private fun SearchAndFiltersSection(
         ) {
             filterChips.forEach { chipName ->
                 val isSelected = chipName == filterStatus
-                
+
                 val containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
                 val textColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                 val borderStroke = if (isSelected) null else BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
@@ -552,7 +586,6 @@ private fun WordCard(
     onClick: () -> Unit
 ) {
     // Xác định màu sắc chấm tròn dựa trên trạng thái SRS
-    // "new" (đỏ), "learning" (cam/vàng), "mastered" (xanh success)
     val statusDotColor = when (uiItem.status) {
         "mastered" -> Color(0xFF10B981) // Success
         "learning" -> Color(0xFFF59E0B) // Warning
@@ -599,7 +632,7 @@ private fun WordCard(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
-                    
+
                     // Thẻ nhãn trạng thái học
                     Box(
                         modifier = Modifier
@@ -623,7 +656,7 @@ private fun WordCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = uiItem.word.meaning,
@@ -720,4 +753,3 @@ private fun GhostCard(onClick: () -> Unit) {
         }
     }
 }
-

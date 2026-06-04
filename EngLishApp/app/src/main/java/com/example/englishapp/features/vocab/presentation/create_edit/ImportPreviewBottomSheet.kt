@@ -68,19 +68,29 @@ fun ImportPreviewBottomSheet(
 
             // Danh sách xem trước hoặc thông báo lỗi
             if (parsedWords.isEmpty()) {
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
+                        .padding(vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Không tìm thấy dữ liệu từ vựng hợp lệ. Hãy kiểm tra lại định dạng file CSV (Từ vựng, Định nghĩa, Phiên âm).",
+                        text = "Định dạng file không hợp lệ hoặc file trống.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.error
                     )
+                    Text(
+                        text = "Định dạng hỗ trợ: Từ vựng, Định nghĩa, Phiên âm",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             } else {
+                Text(
+                    text = "Lưu ý: Đảm bảo file CSV có định dạng: Từ vựng, Định nghĩa, Phiên âm",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier
