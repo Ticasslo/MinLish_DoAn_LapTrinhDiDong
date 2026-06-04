@@ -64,7 +64,7 @@ fun DictionaryScreen(
         ) {
             Spacer(Modifier.height(4.dp))
 
-            // ── Ô nhập từ cần tra cứu ─────────────────────────────────────
+            // Ô nhập từ cần tra cứu
             SearchInputSection(
                 query = uiState.query,
                 isLoading = uiState.isLoading,
@@ -75,7 +75,7 @@ fun DictionaryScreen(
                 }
             )
 
-            // ── Thông báo lỗi ─────────────────────────────────────────────
+            // Thông báo lỗi
             AnimatedVisibility(
                 visible = uiState.error != null,
                 enter = fadeIn() + expandVertically(),
@@ -86,7 +86,7 @@ fun DictionaryScreen(
                 }
             }
 
-            // ── Kết quả tra cứu ───────────────────────────────────────────
+            // Kết quả tra cứu
             AnimatedVisibility(
                 visible = uiState.hasResult,
                 enter = fadeIn(tween(400)) + expandVertically(tween(400)),
@@ -113,7 +113,7 @@ fun DictionaryScreen(
                 }
             }
 
-            // ── Hướng dẫn khi chưa tra cứu ────────────────────────────────
+            // Hướng dẫn khi chưa tra cứu
             AnimatedVisibility(
                 visible = !uiState.hasResult && !uiState.isLoading && uiState.error == null,
                 enter = fadeIn(),
@@ -125,9 +125,7 @@ fun DictionaryScreen(
     }
 }
 
-// =============================================================================
 // TOP APP BAR
-// =============================================================================
 @Composable
 private fun DictionaryTopBar(onBackClick: () -> Unit) {
     Surface(
@@ -170,9 +168,7 @@ private fun DictionaryTopBar(onBackClick: () -> Unit) {
     }
 }
 
-// =============================================================================
 // Ô TÌM KIẾM
-// =============================================================================
 @Composable
 private fun SearchInputSection(
     query: String,
@@ -243,9 +239,7 @@ private fun SearchInputSection(
     }
 }
 
-// =============================================================================
 // KẾT QUẢ TRA CỨU
-// =============================================================================
 @Composable
 private fun ResultSection(
     word: String,
@@ -258,7 +252,7 @@ private fun ResultSection(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
-        // ── Thẻ từ chính ─────────────────────────────────────────────────
+        // Thẻ từ chính
         Card(
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
@@ -337,7 +331,7 @@ private fun ResultSection(
             }
         }
 
-        // ── Thẻ định nghĩa tiếng Anh ─────────────────────────────────────
+        // Thẻ định nghĩa tiếng Anh
         if (englishDefinition.isNotBlank()) {
             DetailCard(
                 icon = Icons.Outlined.Article,
@@ -347,7 +341,7 @@ private fun ResultSection(
             )
         }
 
-        // ── Thẻ câu ví dụ ─────────────────────────────────────────────────
+        // Thẻ câu ví dụ
         if (example.isNotBlank()) {
             DetailCard(
                 icon = Icons.Outlined.FormatQuote,
@@ -358,7 +352,7 @@ private fun ResultSection(
             )
         }
 
-        // ── Nút lưu lớn ở cuối ────────────────────────────────────────────
+        // Nút lưu lớn ở cuối
         Button(
             onClick = onSaveClick,
             modifier = Modifier
@@ -378,10 +372,7 @@ private fun ResultSection(
     }
 }
 
-// =============================================================================
 // COMPONENTS PHỤ
-// =============================================================================
-
 @Composable
 private fun InfoRow(
     icon: ImageVector,

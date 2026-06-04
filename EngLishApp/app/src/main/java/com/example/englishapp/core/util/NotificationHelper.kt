@@ -15,9 +15,11 @@ class NotificationHelper(
     private val context: Context
 ) {
     companion object {
-        const val CHANNEL_ID = "english_app_daily_reminder"
-        const val CHANNEL_NAME = "Nhắc nhở học tập hàng ngày"
-        const val NOTIFICATION_ID = 1001
+        const val DAILY_REMINDER_CHANNEL_ID = "daily_reminder_channel"
+        const val REVIEW_DUE_CHANNEL_ID = "review_due_channel"
+        
+        const val DAILY_REMINDER_ID = 1001
+        const val REVIEW_DUE_ID = 1002
     }
 
     init {
@@ -26,19 +28,34 @@ class NotificationHelper(
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val descriptionText = "Kênh thông báo nhắc nhở bạn học từ vựng mỗi ngày"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance).apply {
-                description = descriptionText
-            }
             val notificationManager: NotificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
+
+            val dailyChannel = NotificationChannel(
+                DAILY_REMINDER_CHANNEL_ID,
+                "Nhắc nhở hàng ngày",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            notificationManager.createNotificationChannel(dailyChannel)
+
+            val reviewChannel = NotificationChannel(
+                REVIEW_DUE_CHANNEL_ID,
+                "Ôn tập đến hạn",
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            notificationManager.createNotificationChannel(reviewChannel)
         }
     }
 
     fun showDailyReminderNotification(title: String, message: String) {
-        // Mở MainActivity khi người dùng nhấn vào thông báo
+        showNotification(DAILY_REMINDER_ID, DAILY_REMINDER_CHANNEL_ID, title, message)
+    }
+
+    fun showReviewDueNotification(title: String, message: String) {
+        showNotification(REVIEW_DUE_ID, REVIEW_DUE_CHANNEL_ID, title, message)
+    }
+
+    private fun showNotification(notificationId: Int, channelId: String, title: String, message: String) {
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -49,19 +66,17 @@ class NotificationHelper(
             PendingIntent.FLAG_IMMUTABLE
         )
 
-        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher_round) // Sử dụng icon của app (hoặc ic_notification riêng nếu có)
+        val builder = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(R.mipmap.ic_launcher_round)
             .setContentTitle(title)
             .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
         with(NotificationManagerCompat.from(context)) {
-            // Cần kiểm tra quyền trước khi hiển thị trên Android 13+ (POST_NOTIFICATIONS)
-            // Lỗi suppress được gọi ra vì mình đã kiểm tra quyền lúc thiết lập trong UI
             try {
-                notify(NOTIFICATION_ID, builder.build())
+                notify(notificationId, builder.build())
             } catch (e: SecurityException) {
                 e.printStackTrace()
             }

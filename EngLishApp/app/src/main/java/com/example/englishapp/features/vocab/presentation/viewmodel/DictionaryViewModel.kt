@@ -77,7 +77,6 @@ class DictionaryViewModel @Inject constructor(
                 val example = firstDef?.example ?: ""
 
                 // 2. Dịch nghĩa sang tiếng Việt: chỉ dịch TỪ GỐC (không dịch định nghĩa)
-                // Dịch từ sẽ cho kết quả gọn, chính xác hơn (VD: "resilient" → "kiên cường")
                 val vietnameseMeaning = dictionaryRepository.translateToVietnamese(word) ?: ""
 
                 _uiState.update {

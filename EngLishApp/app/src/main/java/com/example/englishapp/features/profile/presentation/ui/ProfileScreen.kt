@@ -42,7 +42,6 @@ import com.example.englishapp.core.ui.components.NavItem
 import com.example.englishapp.features.profile.presentation.viewmodel.ProfileViewModel
 
 // LỚP DỮ LIỆU ĐỊNH NGHĨA ITEM CHO MENU TÀI KHOẢN
-
 // Định nghĩa cấu trúc của một dòng tùy chọn trong mục Tài khoản
 data class AccountMenuItem(
     val icon: ImageVector,
@@ -101,7 +100,7 @@ fun ProfileScreen(
             // Nếu được cấp quyền, tiến hành cập nhật bật thông báo
             viewModel.updateSettings(user?.dailyGoal ?: 20, user?.reminderTime ?: "20:00", true)
         } else {
-            // Nếu từ chối, có thể hiện thông báo nhắc nhở hoặc không làm gì
+            // Nếu từ chối
             viewModel.updateSettings(user?.dailyGoal ?: 20, user?.reminderTime ?: "20:00", false)
         }
     }
@@ -154,7 +153,7 @@ fun ProfileScreen(
         AccountMenuItem(Icons.Outlined.Science, "Tạo dữ liệu Test", onClick = { viewModel.generateTestData() })
     )
 
-    // 6. Dựng bố cục màn hình Profile bằng Scaffold
+    // 6. Dựng bố cục màn hình Profile
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -418,7 +417,7 @@ fun ProfileScreen(
     }
 }
 
-// CÁC HÀM COMPOSE THÀNH PHẦN CHI TIẾT (ĐƠN GIẢN HÓA & GHI CHÚ RÕ RÀNG)
+// CÁC HÀM COMPOSE THÀNH PHẦN CHI TIẾT
 /**
  * Vẽ thanh tiêu đề trên cùng (TopBar) cho màn hình Hồ sơ
  */

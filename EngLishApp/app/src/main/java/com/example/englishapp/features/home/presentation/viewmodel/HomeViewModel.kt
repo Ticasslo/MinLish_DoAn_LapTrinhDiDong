@@ -12,6 +12,8 @@ import com.example.englishapp.features.home.domain.usecase.GetDailyProgressUseCa
 import com.example.englishapp.features.home.domain.usecase.GetHomeDecksUseCase
 import com.example.englishapp.features.home.domain.usecase.GetStreakUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import android.app.Application
+import com.example.englishapp.features.notification.worker.NotificationScheduler
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,6 +37,7 @@ data class HomeUiState(
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    private val app: Application,
     private val authRepository: IAuthRepository,
     private val getStreakUseCase: GetStreakUseCase,
     private val getDailyProgressUseCase: GetDailyProgressUseCase,
@@ -50,6 +53,8 @@ class HomeViewModel @Inject constructor(
     init {
         loadUserData()
         triggerSync()
+        // Kích hoạt worker kiểm tra ôn tập khi app khởi động
+        NotificationScheduler.scheduleReviewDueNotification(app)
     }
 
     private fun triggerSync() {

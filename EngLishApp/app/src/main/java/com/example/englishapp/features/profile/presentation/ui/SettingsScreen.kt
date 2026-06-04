@@ -56,20 +56,20 @@ fun SettingsScreen(
         ) {
             Spacer(Modifier.height(4.dp))
 
-            // ── Giao diện ──────────────────
+            // Giao diện
             SettingsSectionHeader("Chế độ hiển thị")
             AppearanceCard(
                 darkMode = darkMode,
                 onDarkModeToggle = { viewModel.setDarkMode(it) }
             )
 
-            // ── Tài khoản ─────────────────────────────
+            // Tài khoản
             SettingsSectionHeader("Tài khoản")
             AccountCard(
                 onChangePasswordClick = onChangePasswordClick
             )
 
-            // ── Logout ────────────────────────────────
+            // Logout
             LogoutButton2(onClick = { showLogoutConfirm = true })
         }
     }

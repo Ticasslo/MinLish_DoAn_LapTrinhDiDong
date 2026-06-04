@@ -75,7 +75,7 @@ fun MySetsScreen(
             )
         },
         floatingActionButton = {
-            // Nút FAB thêm bộ từ mới chuẩn 12dp bo góc theo tài liệu DESIGN_List_vocab.md
+            // Nút FAB thêm bộ từ mới
             FloatingActionButton(
                 onClick = onCreateSetClick,
                 shape = RoundedCornerShape(12.dp),

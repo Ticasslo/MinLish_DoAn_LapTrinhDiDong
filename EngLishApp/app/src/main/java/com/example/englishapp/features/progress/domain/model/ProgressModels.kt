@@ -24,5 +24,5 @@ data class WordStatus(
 data class SetRetention(
     val setName: String,
     val retentionRate: Int, // Từ vựng đã học trên tổng số từ vựng
-    val iconType: String // e.g., "business", "travel", "academic"
+    val iconType: String // "business", "travel", "academic"...
 )

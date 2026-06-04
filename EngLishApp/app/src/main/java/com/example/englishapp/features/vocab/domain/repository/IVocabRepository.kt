@@ -10,10 +10,7 @@ import kotlinx.coroutines.flow.Flow
  */
 interface IVocabRepository {
 
-    // =============================================================================
     // 1. CÁC HÀM QUẢN LÝ BỘ TỪ VỰNG (VOCABULARY SET)
-    // =============================================================================
-
     // Lấy toàn bộ danh sách bộ từ vựng của người dùng dưới dạng luồng dữ liệu Flow
     fun getSets(userId: String): Flow<List<VocabularySet>>
 
@@ -29,10 +26,7 @@ interface IVocabRepository {
     // Tính toán lại số lượng từ (wordCount, masteredCount, learningCount, newCount) của bộ từ vựng
     suspend fun recalculateSetCounts(setId: String, userId: String)
 
-    // =============================================================================
     // 2. CÁC HÀM QUẢN LÝ TỪ VỰNG CHI TIẾT (WORD)
-    // =============================================================================
-
     // Lấy danh sách các từ vựng thuộc về một bộ từ cụ thể (setId) dưới dạng Flow
     fun getWords(setId: String): Flow<List<Word>>
 

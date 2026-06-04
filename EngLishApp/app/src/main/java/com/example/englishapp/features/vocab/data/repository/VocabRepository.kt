@@ -33,9 +33,7 @@ class VocabRepository @Inject constructor(
     private val networkUtil: NetworkUtil
 ) : BaseRepository(networkUtil), IVocabRepository {
 
-    // =============================================================================
     // 1. CÁC PHƯƠNG THỨC QUẢN LÝ BỘ TỪ VỰNG (VOCABULARY SET)
-    // =============================================================================
 
     // Lắng nghe danh sách bộ từ vựng của một user ở local Room
     override fun getSets(userId: String): Flow<List<VocabularySet>> {
@@ -105,10 +103,7 @@ class VocabRepository @Inject constructor(
         )
     }
 
-    // =============================================================================
     // 2. CÁC PHƯƠNG THỨC QUẢN LÝ TỪ VỰNG CHI TIẾT (WORD)
-    // =============================================================================
-
     // Lấy danh sách từ vựng trong bộ từ theo ID
     override fun getWords(setId: String): Flow<List<Word>> {
         return wordDao.getWordsBySetId(setId).map { list ->
@@ -168,10 +163,7 @@ class VocabRepository @Inject constructor(
         }
     }
 
-    // =============================================================================
     // 3. CẬP NHẬT CHỈ SỐ BỘ TỪ (RECALCULATE COUNTS)
-    // =============================================================================
-
     // Tính toán lại các chỉ số đếm của bộ từ và đồng bộ lên Firestore
     override suspend fun recalculateSetCounts(setId: String, userId: String) {
         val wordList = wordDao.getWordsBySetId(setId).first()

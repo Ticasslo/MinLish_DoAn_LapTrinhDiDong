@@ -121,7 +121,7 @@ fun ProgressScreen(
     }
 }
 
-// Helper for spaced arrangement in Column (Custom if not available in standard)
+// Helper spaced arrangement in Column
 @Composable
 fun Arrangement.spacedCorner(space: androidx.compose.ui.unit.Dp): Arrangement.Vertical = Arrangement.spacedBy(space)
 
@@ -134,7 +134,6 @@ fun LevelCard(level: String, progress: Float) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Box(modifier = Modifier.padding(24.dp)) {
-            // Background Icon decoration (simulated)
             Icon(
                 imageVector = Icons.Default.MilitaryTech,
                 contentDescription = null,
@@ -290,7 +289,7 @@ fun ActivityChart(activities: List<DailyActivity>) {
         ) {
             Text(text = "Hoạt động 7 ngày", style = Typography.headlineSmall)
             Text(
-                text = "Tháng 10", // Should be dynamic
+                text = "Tháng 10",
                 style = Typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.primary
             )
@@ -311,7 +310,7 @@ fun ActivityChart(activities: List<DailyActivity>) {
                 verticalAlignment = Alignment.Bottom
             ) {
                 if (activities.isEmpty()) {
-                    // Fallback or empty state
+                    // Fallback
                     Text(
                         "Không có dữ liệu",
                         modifier = Modifier.fillMaxWidth(),
@@ -417,7 +416,7 @@ fun DonutChart(mastered: Float, learning: Float) {
 
     Canvas(modifier = Modifier.fillMaxSize()) {
         val strokeWidth = 16.dp.toPx()
-        // Background track
+        // Background
         drawCircle(
             color = surfaceVariant,
             style = Stroke(width = strokeWidth)

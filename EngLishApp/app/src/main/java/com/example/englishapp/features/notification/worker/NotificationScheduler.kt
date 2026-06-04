@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit
 
 object NotificationScheduler {
     const val DAILY_REMINDER_WORK_NAME = "daily_reminder_work"
+    const val REVIEW_DUE_WORK_NAME = "review_due_work"
 
     fun scheduleDailyReminder(context: Context, timeString: String) {
         val parts = timeString.split(":")
@@ -44,7 +45,23 @@ object NotificationScheduler {
         )
     }
 
+    // ReviewDueWorker (chạy mỗi 6 tiếng)
+    fun scheduleReviewDueNotification(context: Context) {
+        val workRequest = PeriodicWorkRequestBuilder<ReviewDueWorker>(6, TimeUnit.HOURS)
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+            REVIEW_DUE_WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP, // Dùng KEEP để không làm gián đoạn nếu đã có lịch
+            workRequest
+        )
+    }
+
     fun cancelDailyReminder(context: Context) {
         WorkManager.getInstance(context).cancelUniqueWork(DAILY_REMINDER_WORK_NAME)
+    }
+
+    fun cancelReviewDueNotification(context: Context) {
+        WorkManager.getInstance(context).cancelUniqueWork(REVIEW_DUE_WORK_NAME)
     }
 }
