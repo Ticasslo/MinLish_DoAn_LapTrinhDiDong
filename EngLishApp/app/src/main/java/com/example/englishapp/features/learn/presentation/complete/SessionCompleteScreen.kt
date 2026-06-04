@@ -1,5 +1,6 @@
 package com.example.englishapp.features.learn.presentation.complete
 
+import androidx.activity.compose.BackHandler
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -27,8 +28,13 @@ import kotlin.math.roundToInt
 fun SessionCompleteScreen(
     stats: SessionStats,
     onContinueClick: () -> Unit,
-    onHomeClick: () -> Unit
+    onHomeClick: () -> Unit,
+    onBackToVocabList: () -> Unit
 ) {
+    BackHandler {
+        onBackToVocabList()
+    }
+
     val durationMinutes = ((System.currentTimeMillis() - stats.startTime) / 60000.0).roundToInt().coerceAtLeast(1)
 
     val totalAttempts = stats.correctCount + stats.againCount

@@ -387,6 +387,9 @@ fun AppNavigation(
                         navController.navigate(Screen.Home.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
+                    },
+                    onBackToVocabList = {
+                        navController.popBackStack(Screen.VocabList.route, inclusive = false)
                     }
                 )
             } else {
