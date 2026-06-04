@@ -42,7 +42,7 @@ fun SessionCompleteScreen(
         (stats.correctCount.toFloat() / totalAttempts * 100).roundToInt()
     } else 0
 
-    // Load hiệu ứng pháo hoa từ file của bạn
+    // Load hiệu ứng pháo hoa
     val compositionResult = rememberLottieComposition(LottieCompositionSpec.RawRes(com.example.englishapp.R.raw.animation))
     val progress by animateLottieCompositionAsState(
         composition = compositionResult.value,
@@ -91,7 +91,7 @@ fun SessionCompleteScreen(
                 Image(
                     painter = painterResource(id = com.example.englishapp.R.drawable.ic_trophy_custom),
                     contentDescription = "Trophy Icon",
-                    modifier = Modifier.size(350.dp) // Icon nhỏ hơn animation để đẹp hơn
+                    modifier = Modifier.size(350.dp)
                 )
             }
 

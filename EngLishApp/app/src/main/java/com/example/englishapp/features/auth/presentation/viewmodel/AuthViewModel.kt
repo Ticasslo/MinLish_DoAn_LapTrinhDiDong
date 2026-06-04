@@ -45,7 +45,7 @@ class AuthViewModel @Inject constructor(
                     _uiState.update { it.copy(authResult = AuthResult.Success(user)) }
                 } else {
                     // Nếu Local DB chưa có (mới cài lại app hoặc login lần đầu), 
-                    // nhưng Firebase đã login, thì lấy dữ liệu từ Server
+                    // Firebase đã login, thì lấy dữ liệu từ Server
                     val firebaseUser = getCurrentUserUseCase()
                     if (firebaseUser != null) {
                         fetchFullUserData(firebaseUser.userId)

@@ -45,7 +45,7 @@ interface StudySessionDao {
     @Query("SELECT * FROM study_sessions WHERE userId = :userId ORDER BY date DESC LIMIT 1")
     suspend fun getLastSession(userId: String): StudySessionEntity?
 
-    // === Home screen: session gần nhất của mỗi set ===
+    // Home screen: session gần nhất của mỗi set
     @Query("""
         SELECT s.* FROM study_sessions s
         INNER JOIN (

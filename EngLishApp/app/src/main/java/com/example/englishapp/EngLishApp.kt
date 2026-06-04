@@ -27,10 +27,10 @@ class EngLishApp : Application(), Configuration.Provider {
         // 1. Đặt lịch chạy ngầm định kỳ (Background Fetch)
         SyncWorker.schedule(this)
         
-        // 2. CHIẾN LƯỢC HIỆN ĐẠI: Đồng bộ khi khởi động
+        // 2. Đồng bộ khi khởi động
         SyncWorker.startImmediate(this)
 
-        // 3. CHIẾN LƯỢC HIỆN ĐẠI: Đồng bộ mỗi khi người dùng quay lại App (Foreground Sync)
+        // 3. Đồng bộ mỗi khi người dùng quay lại App (Foreground Sync)
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
                 // Chạy mỗi khi App chuyển từ Background lên Foreground

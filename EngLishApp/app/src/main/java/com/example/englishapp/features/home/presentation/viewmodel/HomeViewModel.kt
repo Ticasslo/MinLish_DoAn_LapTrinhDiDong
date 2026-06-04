@@ -57,7 +57,6 @@ class HomeViewModel @Inject constructor(
             try {
                 syncRepository.syncAll()
             } catch (e: Exception) {
-                // Có thể log lỗi ở đây nhưng không làm gián đoạn trải nghiệm offline
             }
         }
     }

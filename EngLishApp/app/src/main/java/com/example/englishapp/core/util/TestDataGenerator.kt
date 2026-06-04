@@ -16,7 +16,6 @@ class TestDataGenerator @Inject constructor(
         clearExistingData(userId)
 
         // 1. Chỉ cập nhật một vài thông tin cần thiết cho User hiện tại, không tạo mới object User hoàn toàn
-        // Điều này giúp giữ nguyên các thông tin quan trọng khác của account đang login
         firebaseService.getUser(userId)?.let { currentUser ->
             val updatedUser = currentUser.copy(
                 goal = "IELTS",

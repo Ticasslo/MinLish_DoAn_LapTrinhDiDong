@@ -41,7 +41,7 @@ fun MainBottomBar(
                 
                 Column(
                     modifier = Modifier
-                        .weight(1f) // QUAN TRỌNG: Giúp mỗi item chiếm không gian bằng nhau, không bị lệch
+                        .weight(1f) // Giúp mỗi item chiếm không gian bằng nhau, không bị lệch
                         .clip(RoundedCornerShape(12.dp))
                         .then(
                             if (isSelected) Modifier.background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f))

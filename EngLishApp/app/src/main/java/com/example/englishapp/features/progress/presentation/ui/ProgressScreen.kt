@@ -130,7 +130,7 @@ fun LevelCard(level: String, progress: Float) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = ColorCardLight),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Box(modifier = Modifier.padding(24.dp)) {
@@ -142,7 +142,7 @@ fun LevelCard(level: String, progress: Float) {
                     .size(120.dp)
                     .align(Alignment.TopEnd)
                     .offset(x = 20.dp, y = (-20).dp),
-                tint = PrimaryLight.copy(alpha = 0.1f)
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
             )
 
             Column {
@@ -154,13 +154,13 @@ fun LevelCard(level: String, progress: Float) {
                         modifier = Modifier
                             .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(PrimaryContainerLight),
+                            .background(MaterialTheme.colorScheme.primaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             Icons.Default.WorkspacePremium,
                             contentDescription = null,
-                            tint = OnPrimaryContainerLight,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.size(30.dp)
                         )
                     }
@@ -168,12 +168,12 @@ fun LevelCard(level: String, progress: Float) {
                         Text(
                             text = "Cấp độ hiện tại",
                             style = Typography.labelSmall,
-                            color = ColorSubtleText
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = level,
                             style = Typography.headlineLarge,
-                            color = PrimaryLight
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -187,12 +187,12 @@ fun LevelCard(level: String, progress: Float) {
                     Text(
                         text = "Lộ trình A1 - C2",
                         style = Typography.bodyLarge,
-                        color = OnSurfaceVariantLight
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "${(progress * 100).toInt()}%",
                         style = Typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                        color = PrimaryLight
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
 
@@ -204,8 +204,8 @@ fun LevelCard(level: String, progress: Float) {
                         .fillMaxWidth()
                         .height(12.dp)
                         .clip(CircleShape),
-                    color = PrimaryLight,
-                    trackColor = SurfaceVariantLight,
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
                     strokeCap = StrokeCap.Round
                 )
 
@@ -219,7 +219,7 @@ fun LevelCard(level: String, progress: Float) {
                         Text(
                             text = label,
                             style = Typography.labelSmall,
-                            color = if (label == "B1") PrimaryLight else ColorSubtleText,
+                            color = if (label == "B1") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             fontWeight = if (label == "B1") FontWeight.Bold else FontWeight.Normal
                         )
                     }
@@ -245,7 +245,7 @@ fun OverviewGrid(streak: Int, vocabulary: Int, accuracy: Int) {
         StatItem(
             modifier = Modifier.weight(1f),
             icon = Icons.Default.MenuBook,
-            iconColor = PrimaryLight,
+            iconColor = MaterialTheme.colorScheme.primary,
             label = "Từ vựng",
             value = vocabulary.toString()
         )
@@ -264,8 +264,8 @@ fun StatItem(modifier: Modifier, icon: ImageVector, iconColor: Color, label: Str
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = ColorCardLight),
-        border = BorderStroke(1.dp, ColorDivider)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Column(
             modifier = Modifier
@@ -274,8 +274,8 @@ fun StatItem(modifier: Modifier, icon: ImageVector, iconColor: Color, label: Str
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(icon, contentDescription = null, tint = iconColor, modifier = Modifier.size(24.dp))
-            Text(text = label, style = Typography.labelSmall, color = ColorSubtleText)
-            Text(text = value, style = Typography.headlineSmall, color = OnSurfaceLight)
+            Text(text = label, style = Typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text = value, style = Typography.headlineSmall, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
@@ -292,15 +292,15 @@ fun ActivityChart(activities: List<DailyActivity>) {
             Text(
                 text = "Tháng 10", // Should be dynamic
                 style = Typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                color = PrimaryLight
+                color = MaterialTheme.colorScheme.primary
             )
         }
 
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = ColorCardLight),
-            border = BorderStroke(1.dp, ColorDivider)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
         ) {
             Row(
                 modifier = Modifier
@@ -356,7 +356,7 @@ fun ActivityBar(modifier: Modifier, activity: DailyActivity) {
                     .fillMaxWidth()
                     .fillMaxHeight(animatedHeight.coerceAtLeast(0.05f)) // Cao tối đa 100% của phần weight(1f)
                     .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                    .background(if (activity.isToday) PrimaryLight else SurfaceVariantLight)
+                    .background(if (activity.isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant)
             )
         }
 
@@ -368,7 +368,7 @@ fun ActivityBar(modifier: Modifier, activity: DailyActivity) {
             text = activity.dayName,
             style = Typography.labelSmall.copy(
                 fontWeight = if (activity.isToday) FontWeight.Bold else FontWeight.Normal,
-                color = if (activity.isToday) OnSurfaceLight else ColorSubtleText
+                color = if (activity.isToday) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
             )
         )
     }
@@ -381,8 +381,8 @@ fun WordStatusSection(total: Int, mastered: Int, learning: Int, new: Int) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = ColorCardLight),
-            border = BorderStroke(1.dp, ColorDivider)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
         ) {
             Row(
                 modifier = Modifier.padding(24.dp),
@@ -396,14 +396,14 @@ fun WordStatusSection(total: Int, mastered: Int, learning: Int, new: Int) {
                     )
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(text = total.toString(), style = Typography.headlineSmall)
-                        Text(text = "Tổng", style = Typography.labelSmall, color = ColorSubtleText)
+                        Text(text = "Tổng", style = Typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
 
                 Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     StatusRow(color = ColorSuccess, label = "Thành thạo", count = mastered)
-                    StatusRow(color = PrimaryLight, label = "Đang học", count = learning)
-                    StatusRow(color = SurfaceVariantLight, label = "Từ mới", count = new)
+                    StatusRow(color = MaterialTheme.colorScheme.primary, label = "Đang học", count = learning)
+                    StatusRow(color = MaterialTheme.colorScheme.surfaceVariant, label = "Từ mới", count = new)
                 }
             }
         }
@@ -412,11 +412,14 @@ fun WordStatusSection(total: Int, mastered: Int, learning: Int, new: Int) {
 
 @Composable
 fun DonutChart(mastered: Float, learning: Float) {
+    val surfaceVariant = MaterialTheme.colorScheme.surfaceVariant
+    val primary = MaterialTheme.colorScheme.primary
+
     Canvas(modifier = Modifier.fillMaxSize()) {
         val strokeWidth = 16.dp.toPx()
         // Background track
         drawCircle(
-            color = SurfaceVariantLight,
+            color = surfaceVariant,
             style = Stroke(width = strokeWidth)
         )
         // Mastered segment
@@ -429,7 +432,7 @@ fun DonutChart(mastered: Float, learning: Float) {
         )
         // Learning segment
         drawArc(
-            color = PrimaryLight,
+            color = primary,
             startAngle = -90f + (mastered * 360f),
             sweepAngle = learning * 360f,
             useCenter = false,
@@ -447,7 +450,7 @@ fun StatusRow(color: Color, label: String, count: Int) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(color))
-            Text(text = label, style = Typography.bodyLarge, color = OnSurfaceVariantLight)
+            Text(text = label, style = Typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Text(text = count.toString(), style = Typography.bodyLarge.copy(fontWeight = FontWeight.Bold))
     }
@@ -473,23 +476,23 @@ fun RetentionItem(retention: SetRetention) {
         else -> Icons.Default.Psychology
     }
     
-    val tintColor = when (retention.iconType) {
-        "business" -> PrimaryLight
-        "travel" -> TertiaryLight
-        else -> SecondaryLight
-    }
-
     val rateColor = when {
         retention.retentionRate >= 80 -> ColorSuccess
         retention.retentionRate >= 50 -> ColorWarning
         else -> ColorError
     }
 
+    val tintColor = when (retention.iconType) {
+        "business" -> MaterialTheme.colorScheme.primary
+        "travel" -> MaterialTheme.colorScheme.tertiary
+        else -> MaterialTheme.colorScheme.secondary
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = ColorCardLight),
-        border = BorderStroke(1.dp, ColorDivider)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -500,7 +503,7 @@ fun RetentionItem(retention: SetRetention) {
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(SurfaceLight),
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(icon, contentDescription = null, tint = tintColor)
@@ -522,7 +525,7 @@ fun RetentionItem(retention: SetRetention) {
                     progress = { retention.retentionRate / 100f },
                     modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
                     color = rateColor,
-                    trackColor = ColorDivider,
+                    trackColor = MaterialTheme.colorScheme.outlineVariant,
                     strokeCap = StrokeCap.Round
                 )
             }

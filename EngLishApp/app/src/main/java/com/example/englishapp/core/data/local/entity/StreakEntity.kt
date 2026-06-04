@@ -9,7 +9,7 @@ data class StreakEntity(
     val currentStreak: Int = 0,
     val longestStreak: Int = 0,
     val lastStudyDate: Long = 0,
-    val streakHistory: List<Long>, // Đảm bảo đã có TypeConverter trong AppDatabase
+    val streakHistory: List<Long>, // TypeConverter trong AppDatabase
     val updatedAt: Long = System.currentTimeMillis(),
     val isSynced: Boolean = false
 )

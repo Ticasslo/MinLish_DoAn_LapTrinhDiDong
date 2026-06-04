@@ -501,8 +501,8 @@ private fun UserInfoSection(
                     modifier = Modifier
                         .size(96.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer)
-                        .border(4.dp, MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .border(4.dp, MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                         .clickable { onEditAvatarClick() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -510,7 +510,7 @@ private fun UserInfoSection(
                         text = userName.take(1).uppercase(),
                         style = MaterialTheme.typography.displaySmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

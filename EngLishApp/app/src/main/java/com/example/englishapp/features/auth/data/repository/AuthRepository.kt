@@ -128,7 +128,7 @@ class AuthRepository @Inject constructor(
                 // 5. Xóa sạch Database Local để bảo mật thông tin user cũ
                 appDatabase.clearAllTables()
             } catch (e: Exception) {
-                // Log lỗi hoặc xử lý nếu cần
+                // Log lỗi
                 e.printStackTrace()
             }
         }

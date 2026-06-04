@@ -393,7 +393,7 @@ fun AppNavigation(
                     }
                 )
             } else {
-                // Fallback nếu không tìm thấy entry (ví dụ: truy cập trực tiếp bằng route)
+                // Fallback
                 navController.navigate(Screen.Home.route) {
                     popUpTo(Screen.Home.route) { inclusive = true }
                 }

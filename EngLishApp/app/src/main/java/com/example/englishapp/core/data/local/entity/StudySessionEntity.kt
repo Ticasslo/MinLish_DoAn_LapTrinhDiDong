@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 // Lưu tạm local sau mỗi phiên học
-// Sync lên Firestore khi có mạng → xoá local
+// Sync lên Firestore khi có mạng rồi xoá local
 @Entity(
     tableName = "study_sessions",
     indices = [

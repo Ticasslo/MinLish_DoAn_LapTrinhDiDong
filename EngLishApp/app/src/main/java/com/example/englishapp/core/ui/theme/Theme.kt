@@ -88,7 +88,7 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun EngLishAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // false = bỏ qua Dynamic Color Android 12+, giữ nguyên bảng màu học thuật thiết kế riêng
+    // false = bỏ qua Dynamic Color Android 12+
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {

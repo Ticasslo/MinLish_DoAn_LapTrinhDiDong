@@ -18,7 +18,7 @@ data class LearnUiState(
     val sessionType: String = "review",
     val isLoading: Boolean = false,
     val cards: List<Pair<SrsCard, Word>> = emptyList(),
-    val totalOriginalCards: Int = 0, // Thêm dòng này: Mục tiêu ban đầu (ví dụ: 5 từ)
+    val totalOriginalCards: Int = 0,
     val currentIndex: Int = 0,
     val isFlipped: Boolean = false,
     val isSessionComplete: Boolean = false,
@@ -54,9 +54,6 @@ class LearnViewModel @Inject constructor(
             
             try {
                 if (mode == "review") {
-                    // SỬA: Dùng first() để lấy danh sách thẻ cần ôn một lần duy nhất khi bắt đầu.
-                    // Không dùng collect() vì mỗi khi cập nhật thẻ vào DB, Flow sẽ phát ra list mới (thiếu thẻ vừa học),
-                    // dẫn đến lệch currentIndex và gây crash IndexOutOfBounds.
                     val dueCards = getDueCardsUseCase(userId, setId).first()
                     val cardsWithWords = dueCards.mapNotNull { card ->
                         val word = repository.getWordById(card.wordId)

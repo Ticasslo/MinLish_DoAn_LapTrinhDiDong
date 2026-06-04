@@ -34,7 +34,7 @@ class HomeRepository @Inject constructor(
         return srsCardDao.getStudiedCardsCountInRange(userId, startOfDay, endOfDay)
     }
 
-    // === Mục "Cần ôn ngay": Tối ưu chỉ observe các set có từ đến hạn ===
+    // Mục "Cần ôn ngay": chỉ observe các set có từ đến hạn
     override fun getReviewDecks(userId: String): Flow<List<HomeReviewDeck>> {
         return srsCardDao.getDueCountPerSet(userId, System.currentTimeMillis()).flatMapLatest { dueCounts ->
             if (dueCounts.isEmpty()) return@flatMapLatest flowOf(emptyList())
@@ -55,7 +55,7 @@ class HomeRepository @Inject constructor(
         }
     }
 
-    // === Mục "Từ mới hôm nay": Tối ưu chỉ observe các set có từ mới ===
+    // Mục "Từ mới hôm nay": chỉ observe các set có từ mới
     override fun getNewWordDecks(userId: String): Flow<List<HomeNewWordDeck>> {
         return srsCardDao.getNewCountPerSet(userId).flatMapLatest { newCounts ->
             if (newCounts.isEmpty()) return@flatMapLatest flowOf(emptyList())

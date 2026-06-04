@@ -85,7 +85,7 @@ interface SrsCardDao {
     """)
     fun getDueCountPerSet(userId: String, now: Long): Flow<List<SetDueCount>>
 
-    // === Home screen: đếm card mới (chưa học) theo từng set ===
+    // Home screen: đếm card mới (chưa học) theo từng set
     @Query("""
         SELECT setId, COUNT(*) as newCount FROM srs_cards 
         WHERE userId = :userId AND status = 'new'

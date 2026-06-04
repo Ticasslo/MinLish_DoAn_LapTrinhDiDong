@@ -65,7 +65,6 @@ fun HomeScreen(
     // Tính toán tiến trình học từ vựng hôm nay (tránh chia cho 0 bằng cách dùng coerceAtLeast)
     val progress = (uiState.wordsToday.toFloat() / uiState.wordGoal.toFloat().coerceAtLeast(1f)).coerceIn(0f, 1f)
 
-    // Hiệu ứng chuyển động mượt mà cho thanh tiến độ
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
         animationSpec = tween(durationMillis = 700),
@@ -87,7 +86,7 @@ fun HomeScreen(
     // Khởi tạo trạng thái nút điều hướng đang được chọn (mặc định là trang chủ - vị trí 0)
     var selectedNav by remember { mutableIntStateOf(0) }
 
-    // 4. Scaffold dựng bố cục chuẩn: Thanh tiêu đề trên, Thanh điều hướng dưới, Nút FAB nổi bật
+    // 4. Scaffold dựng bố cục chuẩn: Thanh tiêu đề trên, Thanh điều hướng dưới
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background, // Màu nền từ hệ thống Theme
         topBar = { 
@@ -159,8 +158,7 @@ fun HomeScreen(
 }
 
 
-// CÁC HÀM COMPOSE THÀNH PHẦN CHI TIẾT (DỄ HIỂU, DỄ QUẢN LÝ)
-
+// CÁC HÀM COMPOSE THÀNH PHẦN CHI TIẾT
 /**
  * Hàm vẽ Thanh tiêu đề trên cùng (TopBar)
  */
@@ -173,7 +171,7 @@ private fun HomeTopBar(
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 2.dp // Đổ bóng nhẹ 2dp theo thiết kế
+        shadowElevation = 2.dp
     ) {
         Row(
             modifier = Modifier
@@ -203,7 +201,7 @@ private fun HomeTopBar(
                     contentAlignment = Alignment.Center
                 ) {
                     if (!avatarUrl.isNullOrBlank()) {
-                        // Nếu có ảnh đại diện, tải ảnh bằng AsyncImage của thư viện Coil
+                        // Nếu có ảnh đại diện, tải ảnh
                         AsyncImage(
                             model = avatarUrl,
                             contentDescription = "Ảnh đại diện",
@@ -213,10 +211,10 @@ private fun HomeTopBar(
                     } else {
                         // Nếu không có ảnh, lấy chữ cái đầu tiên của tên người dùng hiển thị
                         Text(
-                            text = userName.take(1).uppercase(),
+                            text = userName.trim().takeIf { it.isNotEmpty() }?.take(1)?.uppercase() ?: "?",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -266,7 +264,7 @@ private fun TodaySummarySection(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .shadow(2.dp, RoundedCornerShape(12.dp)), // Đổ bóng nhẹ 2dp, bo góc 12dp chuẩn
+            .shadow(2.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
@@ -326,14 +324,14 @@ private fun TodaySummarySection(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(12.dp)
-                    .clip(RoundedCornerShape(50)) // Bo tròn dẹt hai đầu thanh
+                    .clip(RoundedCornerShape(50))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 // Hộp vẽ phần tiến độ màu xanh primary chạy từ trái qua phải
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .fillMaxWidth(animatedProgress) // Chiếm bề ngang theo phần trăm
+                        .fillMaxWidth(animatedProgress)
                         .clip(RoundedCornerShape(50))
                         .background(MaterialTheme.colorScheme.primary)
                 )
@@ -377,7 +375,7 @@ private fun TodaySummarySection(
 }
 
 /**
- * Mục "Cần ôn ngay" (Danh sách cuộn ngang chứa các thẻ ôn tập SRS — DỮ LIỆU THỰC)
+ * Mục "Cần ôn ngay" (Danh sách cuộn ngang chứa các thẻ ôn tập SRS)
  */
 @Composable
 private fun ReviewSection(
@@ -422,14 +420,14 @@ private fun ReviewSection(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.width(16.dp)) // Tạo khoảng cách lề trái cho thẻ đầu
+            Spacer(modifier = Modifier.width(16.dp))
             
-            // Vẽ các thẻ bộ ôn tập — DỮ LIỆU THỰC từ database
+            // Vẽ các thẻ bộ ôn tập từ database
             decks.forEachIndexed { index, deck ->
-                // Thẻ đầu tiên (nhiều từ cần ôn nhất) → isUrgent
+                // Thẻ đầu tiên (nhiều từ cần ôn nhất) -> isUrgent
                 val isUrgent = index == 0
                 val badgeText = if (isUrgent) "KHẨN CẤP" else "ĐẾN HẠN"
-                // Chọn icon dựa trên tag đầu tiên của set, fallback → MenuBook
+                // Chọn icon dựa trên tag đầu tiên của set, fallback -> MenuBook
                 val icon = getIconForTags(deck.tags)
 
                 Card(
@@ -515,13 +513,13 @@ private fun ReviewSection(
                     }
                 }
             }
-            Spacer(modifier = Modifier.width(16.dp)) // Tạo khoảng cách lề phải cho thẻ cuối
+            Spacer(modifier = Modifier.width(16.dp))
         }
     }
 }
 
 /**
- * Mục "Từ mới hôm nay" (Danh sách các thẻ học đề xuất cuộn ngang — DỮ LIỆU THỰC)
+ * Mục "Từ mới hôm nay" (Danh sách các thẻ học đề xuất cuộn ngang)
  */
 @Composable
 private fun NewWordsSection(
@@ -621,7 +619,7 @@ private fun NewWordsSection(
 }
 
 /**
- * Mục "Gần đây" (Danh sách dọc các bộ học đã tương tác gần nhất — DỮ LIỆU THỰC)
+ * Mục "Gần đây" (Danh sách dọc các bộ học đã tương tác gần nhất)
  */
 @Composable
 private fun RecentSection(
@@ -727,7 +725,7 @@ private fun RecentSection(
 // HÀM TIỆN ÍCH (UTILITY FUNCTIONS)
 /**
  * Chọn icon dựa trên tag đầu tiên của bộ từ vựng.
- * Nếu không khớp tag nào → trả về icon sách mặc định.
+ * Nếu không khớp tag nào -> trả về icon sách mặc định.
  */
 private fun getIconForTags(tags: List<String>): ImageVector {
     val firstTag = tags.firstOrNull()?.lowercase() ?: ""
