@@ -59,6 +59,7 @@ class ProgressRepository @Inject constructor(
             userDao.getUserById(userId).map { it?.dailyGoal ?: 50 } // Lấy dailyGoal, mặc định là 50 nếu null
         ) { sessions, dailyGoal ->
             val activityMap = sessions.groupBy { session ->
+                //Gôm nhóm buổi học vào thứ trong
                 val cal = Calendar.getInstance()
                 cal.timeInMillis = session.date
                 cal.get(Calendar.DAY_OF_WEEK)
@@ -78,6 +79,7 @@ class ProgressRepository @Inject constructor(
 
             val currentDay = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
 
+            //dayInt: 2, dayName: T2
             days.map { (dayInt, dayName) ->
                 DailyActivity(
                     dayName = dayName,

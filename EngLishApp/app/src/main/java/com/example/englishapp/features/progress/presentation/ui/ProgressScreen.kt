@@ -38,12 +38,10 @@ import com.example.englishapp.features.progress.domain.model.DailyActivity
 import com.example.englishapp.features.progress.domain.model.SetRetention
 import com.example.englishapp.features.progress.presentation.viewmodel.ProgressViewModel
 import androidx.compose.ui.res.stringResource
-
+import java.util.Calendar
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProgressScreen(
-    onBackClick: () -> Unit = {},
-    onNotificationClick: () -> Unit = {},
     onNavItemClick: (Int) -> Unit = {},
     viewModel: ProgressViewModel = hiltViewModel()
 ) {
@@ -215,11 +213,12 @@ fun LevelCard(level: String, progress: Float) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     listOf("A1", "A2", "B1", "B2", "C1", "C2").forEach { label ->
+                        val isCurrentLevel = level.contains(label)
                         Text(
                             text = label,
                             style = Typography.labelSmall,
-                            color = if (label == "B1") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontWeight = if (label == "B1") FontWeight.Bold else FontWeight.Normal
+                            color = if (isCurrentLevel) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontWeight = if (isCurrentLevel) FontWeight.Bold else FontWeight.Normal
                         )
                     }
                 }
@@ -281,6 +280,11 @@ fun StatItem(modifier: Modifier, icon: ImageVector, iconColor: Color, label: Str
 
 @Composable
 fun ActivityChart(activities: List<DailyActivity>) {
+    val currentMonth = remember {
+        val calendar = Calendar.getInstance()
+        "Tháng ${calendar.get(Calendar.MONTH) + 1}"
+    }
+
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(24.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -289,7 +293,7 @@ fun ActivityChart(activities: List<DailyActivity>) {
         ) {
             Text(text = "Hoạt động 7 ngày", style = Typography.headlineSmall)
             Text(
-                text = "Tháng 10",
+                text = currentMonth,
                 style = Typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.primary
             )

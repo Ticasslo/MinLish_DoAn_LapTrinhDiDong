@@ -28,7 +28,6 @@ import com.example.englishapp.features.learn.presentation.flashcard.FlashcardScr
 import com.example.englishapp.features.learn.presentation.complete.SessionCompleteScreen
 import com.example.englishapp.features.vocab.presentation.dictionary.DictionaryScreen
 
-
 @Composable
 fun AppNavigation(
     authViewModel: AuthViewModel = hiltViewModel()
@@ -130,8 +129,6 @@ fun AppNavigation(
         // 4b. Màn hình Tiến độ (Progress)
         composable(route = Screen.Progress.route) {
             ProgressScreen(
-                onBackClick = { navController.popBackStack() },
-                onNotificationClick = { navController.navigate(Screen.Notification.route) },
                 onNavItemClick = { index ->
                     if (index == 0) {
                         navController.popBackStack(Screen.Home.route, inclusive = false)
